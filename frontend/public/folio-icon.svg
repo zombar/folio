@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Felt tip pen tip - brush stroke style -->
+  <path
+    d="M32 4 C28 4, 24 8, 22 14 C20 20, 18 28, 16 38 C14 48, 28 58, 32 60 C36 58, 50 48, 48 38 C46 28, 44 20, 42 14 C40 8, 36 4, 32 4 Z"
+    fill="#171717"
+    stroke="#ffffff"
+    stroke-width="2"
+    stroke-linejoin="round"
+  />
+  <!-- Ink drop at tip -->
+  <ellipse
+    cx="32"
+    cy="56"
+    rx="4"
+    ry="2"
+    fill="#171717"
+    stroke="#ffffff"
+    stroke-width="1"
+  />
+  <!-- Highlight for dimension -->
+  <path
+    d="M28 12 C26 18, 25 26, 24 34 C23 40, 26 46, 28 48"
+    fill="none"
+    stroke="#404040"
+    stroke-width="2"
+    stroke-linecap="round"
+  />
+</svg>

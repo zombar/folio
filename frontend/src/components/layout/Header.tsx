@@ -1,9 +1,14 @@
 import { Link } from 'react-router-dom'
 import { useUIStore } from '../../stores/uiStore'
-import { ThemeToggle } from '../ui'
+import { useGenerations } from '../../hooks/useGenerations'
+import { ThemeToggle, QueueIndicator } from '../ui'
 
 export default function Header() {
  const toggleSidebar = useUIStore((state) => state.toggleSidebar)
+ const { data: generations } = useGenerations()
+
+ const pendingCount = generations?.filter((g) => g.status === 'pending').length ?? 0
+ const processingCount = generations?.filter((g) => g.status === 'processing').length ?? 0
 
  return (
   <header className="h-14 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 flex items-center px-4 shrink-0">
@@ -34,12 +39,7 @@ export default function Header() {
    <div className="flex-1" />
 
    <div className="flex items-center gap-2">
-    <Link
-     to="/generate"
-     className="border border-neutral-800 dark:border-neutral-200 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-800 hover:text-white dark:hover:bg-neutral-200 dark:hover:text-neutral-900 px-4 py-2 font-medium transition-colors rounded-sm"
-    >
-     Generate
-    </Link>
+    <QueueIndicator pendingCount={pendingCount} processingCount={processingCount} />
     <ThemeToggle />
    </div>
   </header>

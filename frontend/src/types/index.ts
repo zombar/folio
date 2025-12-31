@@ -45,6 +45,7 @@ export interface GenerationParams {
   workflow_id?: string
   model_filename?: string
   lora_filename?: string
+  quantity?: number
 }
 
 export interface ModelInfo {

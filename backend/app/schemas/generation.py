@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
@@ -16,6 +16,7 @@ class GenerationCreate(BaseModel):
     workflow_id: Optional[str] = None
     model_filename: Optional[str] = None
     lora_filename: Optional[str] = None
+    quantity: int = Field(default=1, ge=1, le=25)
 
 
 class GenerationResponse(BaseModel):

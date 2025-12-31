@@ -5,9 +5,11 @@ interface ImageCardProps {
  generation: Generation
  onClick?: () => void
  onDelete?: (e: React.MouseEvent) => void
+ onSetCover?: (e: React.MouseEvent) => void
+ isCover?: boolean
 }
 
-export default function ImageCard({ generation, onClick, onDelete }: ImageCardProps) {
+export default function ImageCard({ generation, onClick, onDelete, onSetCover, isCover }: ImageCardProps) {
  const getThumbnailUrl = (id: string) => `/api/images/${id}/thumbnail`
 
  return (
@@ -15,6 +17,26 @@ export default function ImageCard({ generation, onClick, onDelete }: ImageCardPr
    onClick={onClick}
    className="relative aspect-square bg-neutral-100 dark:bg-neutral-800 overflow-hidden group cursor-pointer hover:ring-2 hover:ring-neutral-400 dark:hover:ring-neutral-500 transition-all"
   >
+   {/* Star/Cover button */}
+   {onSetCover && (
+    <button
+     onClick={(e) => {
+      e.stopPropagation()
+      onSetCover(e)
+     }}
+     className={`absolute top-1 left-1 z-10 w-6 h-6 flex items-center justify-center rounded-full transition-opacity ${
+      isCover
+       ? 'bg-yellow-500 text-white opacity-100'
+       : 'bg-black/60 hover:bg-yellow-500 text-white opacity-0 group-hover:opacity-100'
+     }`}
+     title={isCover ? 'Cover image' : 'Set as cover'}
+    >
+     <svg className="w-4 h-4" fill={isCover ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+     </svg>
+    </button>
+   )}
+
    {/* Delete button */}
    {onDelete && (
     <button
@@ -43,7 +65,10 @@ export default function ImageCard({ generation, onClick, onDelete }: ImageCardPr
      <span className="text-sm text-neutral-500 dark:text-neutral-400">{generation.progress}%</span>
     </div>
    ) : generation.status === 'failed' ? (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
+    <div
+     className="w-full h-full flex flex-col items-center justify-center bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+     title={generation.error_message || 'Generation failed'}
+    >
      <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
        strokeLinecap="round"
@@ -67,12 +92,6 @@ export default function ImageCard({ generation, onClick, onDelete }: ImageCardPr
     </div>
    )}
 
-   {/* Status badge for non-completed */}
-   {generation.status === 'pending' && (
-    <div className="absolute top-2 right-2 px-2 py-1 bg-neutral-200/80 dark:bg-neutral-700/80 text-xs text-neutral-700 dark:text-neutral-300">
-     Queued
-    </div>
-   )}
   </div>
  )
 }

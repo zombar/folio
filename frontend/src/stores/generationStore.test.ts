@@ -52,15 +52,21 @@ describe('generationStore', () => {
     expect(useGenerationStore.getState().cfgScale).toBe(10.5)
   })
 
-  it('should reset to default values', () => {
-    const { setPrompt, setWidth, reset } = useGenerationStore.getState()
+  it('should reset prompt fields but preserve settings', () => {
+    const { setPrompt, setNegativePrompt, setWidth, setSeed, reset } = useGenerationStore.getState()
 
     setPrompt('test prompt')
+    setNegativePrompt('test negative')
     setWidth(512)
+    setSeed(12345)
     reset()
 
+    // Prompt fields should be cleared
     expect(useGenerationStore.getState().prompt).toBe('')
-    expect(useGenerationStore.getState().width).toBe(1024)
+    expect(useGenerationStore.getState().negativePrompt).toBe('')
+    expect(useGenerationStore.getState().seed).toBeNull()
+    // Settings should be preserved
+    expect(useGenerationStore.getState().width).toBe(512)
   })
 
   it('should get params for generation', () => {

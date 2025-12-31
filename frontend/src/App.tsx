@@ -6,14 +6,11 @@ import GeneratePage from './pages/GeneratePage'
 import WorkflowsPage from './pages/WorkflowsPage'
 import { CreatePortfolioModal } from './components/portfolio'
 import { ImageDetail } from './components/gallery'
-import { GenerationQueue } from './components/generation'
 import { useUIStore } from './stores/uiStore'
-import { useGenerations } from './hooks/useGenerations'
 
 function App() {
  const imageDetailId = useUIStore((state) => state.imageDetailId)
  const closeImageDetail = useUIStore((state) => state.closeImageDetail)
- const { data: generations } = useGenerations()
 
  return (
   <MainLayout>
@@ -31,9 +28,6 @@ function App() {
    {imageDetailId && (
     <ImageDetail generationId={imageDetailId} onClose={closeImageDetail} />
    )}
-
-   {/* Generation queue */}
-   {generations && <GenerationQueue generations={generations} />}
   </MainLayout>
  )
 }
