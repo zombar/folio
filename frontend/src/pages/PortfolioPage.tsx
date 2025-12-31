@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { usePortfolio, useDeletePortfolio, useUpdatePortfolio } from '../hooks/usePortfolios'
 import { useGenerations, useDeleteGeneration } from '../hooks/useGenerations'
 import { useUIStore } from '../stores/uiStore'
-import { ImageGrid } from '../components/gallery'
+import { ImageGrid, ImageViewer } from '../components/gallery'
 import { Button, Spinner } from '../components/ui'
 
 export default function PortfolioPage() {
@@ -14,15 +14,22 @@ export default function PortfolioPage() {
  const deletePortfolio = useDeletePortfolio()
  const deleteGeneration = useDeleteGeneration()
  const updatePortfolio = useUpdatePortfolio()
+ const imageDetailId = useUIStore((state) => state.imageDetailId)
  const openImageDetail = useUIStore((state) => state.openImageDetail)
+ const closeImageDetail = useUIStore((state) => state.closeImageDetail)
  const [isEditing, setIsEditing] = useState(false)
 
- // Handle direct image link - open modal when imageId is in URL
+ // Handle direct image link - open viewer when imageId is in URL
  useEffect(() => {
   if (imageId) {
    openImageDetail(imageId)
   }
  }, [imageId, openImageDetail])
+
+ const handleCloseImageViewer = () => {
+  closeImageDetail()
+  navigate(`/portfolio/${id}`, { replace: true })
+ }
 
  // Custom handler for opening image - navigates to image URL
  const handleImageClick = (generationId: string) => {
@@ -86,6 +93,11 @@ export default function PortfolioPage() {
   )
  }
 
+ // When viewing an image, show only the viewer
+ if (imageDetailId) {
+  return <ImageViewer generationId={imageDetailId} onClose={handleCloseImageViewer} />
+ }
+
  return (
   <div>
    <div className="flex items-start justify-between mb-6">
@@ -112,28 +124,39 @@ export default function PortfolioPage() {
        </div>
       </div>
      ) : (
-      <div className="group">
-       <div className="flex items-center gap-2">
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{portfolio.name}</h1>
-        <button
-         onClick={handleStartEdit}
-         className="p-1 opacity-0 group-hover:opacity-100 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-opacity"
-         title="Edit portfolio"
-        >
-         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-         </svg>
-        </button>
+      <div className="group flex items-start gap-3">
+       <button
+        onClick={() => navigate('/')}
+        className="p-2 -ml-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+        aria-label="Back to home"
+       >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+       </button>
+       <div>
+        <div className="flex items-center gap-2">
+         <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{portfolio.name}</h1>
+         <button
+          onClick={handleStartEdit}
+          className="p-1 opacity-0 group-hover:opacity-100 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-opacity"
+          title="Edit portfolio"
+         >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+         </button>
+        </div>
+        {portfolio.description && (
+         <p className="text-neutral-500 dark:text-neutral-400 mt-1">{portfolio.description}</p>
+        )}
        </div>
-       {portfolio.description && (
-        <p className="text-neutral-500 dark:text-neutral-400 mt-1">{portfolio.description}</p>
-       )}
       </div>
      )}
     </div>
     <div className="flex gap-2">
      <Button
-      variant="ghost"
+      variant="outline"
       onClick={handleDelete}
       loading={deletePortfolio.isPending}
      >

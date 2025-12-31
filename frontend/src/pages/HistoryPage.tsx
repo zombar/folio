@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useGenerations } from '../hooks/useGenerations'
 import { Spinner } from '../components/ui'
-import type { Generation } from '../types'
+import type { Generation, GenerationType } from '../types'
 
 function StatusBadge({ status }: { status: Generation['status'] }) {
  const styles = {
@@ -14,6 +14,27 @@ function StatusBadge({ status }: { status: Generation['status'] }) {
  return (
   <span className={`px-2 py-0.5 text-xs font-medium ${styles[status]}`}>
    {status}
+  </span>
+ )
+}
+
+function TypeBadge({ type }: { type: GenerationType | undefined }) {
+ if (!type || type === 'txt2img') return null
+
+ const styles: Record<string, string> = {
+  inpaint: 'bg-neutral-200 text-neutral-700 dark:bg-neutral-600 dark:text-neutral-200',
+  upscale: 'bg-neutral-200 text-neutral-700 dark:bg-neutral-600 dark:text-neutral-200',
+  outpaint: 'bg-neutral-200 text-neutral-700 dark:bg-neutral-600 dark:text-neutral-200',
+ }
+ const labels: Record<string, string> = {
+  inpaint: 'Touch-up',
+  upscale: 'Upscale',
+  outpaint: 'Extend',
+ }
+
+ return (
+  <span className={`px-2 py-0.5 text-xs font-medium ${styles[type]}`}>
+   {labels[type]}
   </span>
  )
 }
@@ -115,6 +136,7 @@ export default function HistoryPage() {
        {/* Content */}
        <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
+         <TypeBadge type={generation.generation_type} />
          <StatusBadge status={generation.status} />
          <span className="text-xs text-neutral-400">
           {new Date(generation.created_at).toLocaleString()}

@@ -24,12 +24,14 @@ class TestGenerationAPI:
         assert response.status_code == 200
         assert response.json() == []
 
-    @patch("app.services.generation_service.job_queue")
+    @patch("app.services.generation_service.get_job_queue")
     @patch("app.services.generation_service.event_bus")
-    def test_create_generation(self, mock_event_bus, mock_job_queue, client):
+    def test_create_generation(self, mock_event_bus, mock_get_job_queue, client):
         """Test creating a new generation."""
         # Mock the async methods
-        mock_job_queue.enqueue = AsyncMock()
+        mock_queue = AsyncMock()
+        mock_queue.enqueue = AsyncMock()
+        mock_get_job_queue.return_value = mock_queue
         mock_event_bus.publish = AsyncMock()
 
         # Create portfolio first

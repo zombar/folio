@@ -1,4 +1,4 @@
-.PHONY: help init build up up-gpu down restart logs ps clean test test-backend test-frontend lint lint-backend lint-frontend shell-backend shell-frontend
+.PHONY: help init build build-fresh up up-gpu down restart logs ps clean test test-backend test-frontend lint lint-backend lint-frontend shell-backend shell-frontend
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -14,6 +14,9 @@ init: ## Initialize development environment (install dependencies + git hooks)
 
 build: ## Build all containers
 	docker compose build
+
+build-fresh: ## Build all containers without cache (use after dependency changes)
+	docker compose build --no-cache
 
 up: ## Start backend + frontend (no GPU)
 	docker compose up -d

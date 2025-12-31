@@ -11,11 +11,14 @@ interface ImageCardProps {
 
 export default function ImageCard({ generation, onClick, onDelete, onSetCover, isCover }: ImageCardProps) {
  const getThumbnailUrl = (id: string) => `/api/images/${id}/thumbnail`
+ const isClickable = generation.status === 'completed'
 
  return (
   <div
-   onClick={onClick}
-   className="relative aspect-square bg-neutral-100 dark:bg-neutral-800 overflow-hidden group cursor-pointer hover:ring-2 hover:ring-neutral-400 dark:hover:ring-neutral-500 transition-all"
+   onClick={isClickable ? onClick : undefined}
+   className={`relative aspect-square bg-neutral-100 dark:bg-neutral-800 overflow-hidden group transition-all ${
+    isClickable ? 'cursor-pointer hover:ring-1 hover:ring-neutral-400 dark:hover:ring-neutral-500' : ''
+   }`}
   >
    {/* Star/Cover button */}
    {onSetCover && (

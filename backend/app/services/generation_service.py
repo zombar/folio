@@ -1,3 +1,4 @@
+import base64
 import json
 import random
 from pathlib import Path
@@ -12,7 +13,7 @@ from app.models.generation import Generation, GenerationStatus
 from app.models.workflow import WorkflowTemplate
 from app.schemas.generation import GenerationCreate, GenerationResponse
 from app.services.event_bus import event_bus
-from app.services.job_queue import job_queue, Job
+from app.services.job_queue import get_job_queue, Job, JobType, JobPriority
 from app.services.comfyui_client import comfyui_client
 
 
@@ -43,9 +44,43 @@ class GenerationService:
         # Generate seed if not provided
         seed = data.seed if data.seed is not None else random.randint(0, 2**32 - 1)
 
+        # For inpainting/upscaling/outpainting, validate source generation exists
+        source_generation = None
+        if data.generation_type in ("inpaint", "upscale", "outpaint"):
+            if not data.source_generation_id:
+                raise ValueError(f"source_generation_id is required for {data.generation_type}")
+            source_generation = self.db.query(Generation).filter(
+                Generation.id == data.source_generation_id
+            ).first()
+            if not source_generation:
+                raise ValueError(f"Source generation {data.source_generation_id} not found")
+            if source_generation.status != GenerationStatus.COMPLETED:
+                raise ValueError("Source generation must be completed")
+            if not source_generation.image_path:
+                raise ValueError("Source generation has no image")
+
+            # Adjust dimensions based on generation type
+            if data.generation_type == "inpaint":
+                # Use source dimensions for inpainting
+                data.width = source_generation.width
+                data.height = source_generation.height
+            elif data.generation_type == "upscale":
+                # Calculate output dimensions for upscaling
+                upscale_factor = data.upscale_factor or 2.0
+                data.width = int(source_generation.width * upscale_factor)
+                data.height = int(source_generation.height * upscale_factor)
+            elif data.generation_type == "outpaint":
+                # Calculate new dimensions with padding
+                left_right = (data.outpaint_left or 0) + (data.outpaint_right or 0)
+                top_bottom = (data.outpaint_top or 0) + (data.outpaint_bottom or 0)
+                data.width = source_generation.width + left_right
+                data.height = source_generation.height + top_bottom
+
         # Create generation record
         generation = Generation(
             portfolio_id=data.portfolio_id,
+            generation_type=data.generation_type,
+            source_generation_id=data.source_generation_id,
             prompt=data.prompt,
             negative_prompt=data.negative_prompt,
             width=data.width,
@@ -57,26 +92,50 @@ class GenerationService:
             workflow_id=data.workflow_id,
             model_filename=data.model_filename,
             lora_filename=data.lora_filename,
+            # Inpainting fields
+            denoising_strength=data.denoising_strength,
+            grow_mask_by=data.grow_mask_by,
+            # Upscaling fields
+            upscale_factor=data.upscale_factor,
+            upscale_model=data.upscale_model,
+            sharpen_amount=data.sharpen_amount,
+            # Outpainting fields
+            outpaint_left=data.outpaint_left,
+            outpaint_right=data.outpaint_right,
+            outpaint_top=data.outpaint_top,
+            outpaint_bottom=data.outpaint_bottom,
+            outpaint_feather=data.outpaint_feather,
             status=GenerationStatus.PENDING,
         )
         self.db.add(generation)
         self.db.commit()
         self.db.refresh(generation)
 
-        # Prepare workflow
-        workflow = self._prepare_workflow(generation)
+        # Save mask image if provided (for inpainting)
+        if data.mask_image_base64:
+            mask_path = self._save_mask_from_base64(generation.id, data.mask_image_base64)
+            generation.mask_path = str(mask_path)
+            self.db.commit()
+
+        # Determine priority: CRITICAL for inpaint/upscale/outpaint, HIGH for txt2img
+        if data.generation_type in ("inpaint", "upscale", "outpaint"):
+            priority = JobPriority.CRITICAL
+        else:
+            priority = JobPriority.HIGH
 
         # Create job
         job = Job(
             id=generation.id,
+            job_type=JobType.GENERATION,
+            priority=priority,
             params={
-                "workflow": workflow,
                 "generation_id": generation.id,
-            }
+            },
+            created_at=datetime.utcnow().isoformat(),
         )
 
         # Enqueue job
-        await job_queue.enqueue(job)
+        await get_job_queue().enqueue(job)
 
         # Publish event
         await event_bus.publish("generation.created", {
@@ -145,20 +204,145 @@ class GenerationService:
                 self._workflow_cache[name] = json.load(f)
         return self._workflow_cache[name].copy()
 
-    def _prepare_workflow(self, generation: Generation) -> dict:
-        """Prepare workflow with generation parameters."""
-        # Load workflow from database or file
-        if generation.workflow_id:
-            workflow_template = self.db.query(WorkflowTemplate).filter(
-                WorkflowTemplate.id == generation.workflow_id
-            ).first()
-            if workflow_template:
-                import copy
-                workflow = copy.deepcopy(workflow_template.workflow_json)
-            else:
-                workflow = self._load_workflow("txt2img_sdxl")
+    def _save_mask_from_base64(self, generation_id: str, mask_base64: str) -> Path:
+        """Save mask image from base64 to storage as PNG with alpha channel.
+
+        The frontend draws white where the user wants to inpaint (regenerate).
+        ComfyUI's LoadImage node outputs:
+        - Output 0: IMAGE (RGB pixels)
+        - Output 1: MASK (from alpha channel)
+
+        The VAEEncodeForInpaint node expects MASK where:
+        - Alpha 0 = area to REGENERATE (transparent)
+        - Alpha 255 = area to KEEP (opaque)
+
+        The frontend sends a canvas where:
+        - White pixels with alpha = area user painted = area to regenerate
+
+        So we need to:
+        1. Extract where the user painted (alpha > 0 in the source)
+        2. Invert it: painted areas become transparent (alpha=0, regenerate)
+        3. Save as RGBA so LoadImage can extract the alpha as MASK
+        """
+        from PIL import ImageOps
+
+        # Decode base64 mask
+        mask_data = base64.b64decode(mask_base64)
+
+        storage_path = Path(settings.storage_path)
+        dir_path = storage_path / "masks"
+        dir_path.mkdir(parents=True, exist_ok=True)
+
+        file_path = dir_path / f"{generation_id}_mask.png"
+
+        # Load the mask image from frontend
+        img = Image.open(io.BytesIO(mask_data))
+
+        # Extract the painted areas
+        if img.mode == "RGBA":
+            # Frontend sends RGBA where alpha > 0 means painted area
+            alpha = img.split()[3]
+        elif img.mode == "LA":
+            # Grayscale with alpha
+            alpha = img.split()[1]
+        elif img.mode == "L":
+            # Pure grayscale - white = painted
+            alpha = img
         else:
-            workflow = self._load_workflow("txt2img_sdxl")
+            # Convert to grayscale
+            alpha = img.convert("L")
+
+        # Invert: painted areas (high alpha/white) become transparent (low alpha)
+        # This makes painted areas = regenerate in ComfyUI
+        inverted_alpha = ImageOps.invert(alpha.convert("L"))
+
+        # Create RGBA image with the inverted alpha channel
+        # RGB can be anything (use white for visibility when debugging)
+        width, height = img.size
+        rgba_img = Image.new("RGBA", (width, height), (255, 255, 255, 255))
+        rgba_img.putalpha(inverted_alpha)
+
+        rgba_img.save(file_path, "PNG")
+
+        return file_path.relative_to(storage_path)
+
+    def _prepare_workflow(
+        self,
+        generation: Generation,
+        source_image_name: Optional[str] = None,
+        mask_image_name: Optional[str] = None,
+    ) -> dict:
+        """Prepare workflow with generation parameters."""
+        import copy
+
+        gen_type = generation.generation_type or "txt2img"
+
+        # Choose workflow based on generation type
+        if gen_type == "upscale":
+            return self._prepare_upscale_workflow(generation, source_image_name)
+
+        if gen_type == "inpaint":
+            workflow = copy.deepcopy(self._load_workflow("inpaint_sdxl"))
+            # Source image (LoadImage node 1)
+            workflow["1"]["inputs"]["image"] = source_image_name
+            # Mask image (LoadImage node 2)
+            workflow["2"]["inputs"]["image"] = mask_image_name
+            # VAEEncodeForInpaint (node 10) - grow_mask_by
+            workflow["10"]["inputs"]["grow_mask_by"] = generation.grow_mask_by or 24
+            # KSampler denoise (node 3)
+            workflow["3"]["inputs"]["denoise"] = generation.denoising_strength or 0.85
+
+        elif gen_type == "outpaint":
+            workflow = copy.deepcopy(self._load_workflow("outpaint_sdxl"))
+            # Source image (LoadImage node 1)
+            workflow["1"]["inputs"]["image"] = source_image_name
+            # ImagePadForOutpaint (node 2) - set padding amounts
+            workflow["2"]["inputs"]["left"] = generation.outpaint_left or 0
+            workflow["2"]["inputs"]["top"] = generation.outpaint_top or 0
+            workflow["2"]["inputs"]["right"] = generation.outpaint_right or 0
+            workflow["2"]["inputs"]["bottom"] = generation.outpaint_bottom or 0
+            workflow["2"]["inputs"]["feathering"] = generation.outpaint_feather or 80
+            # VAEEncodeForInpaint (node 10) - grow_mask_by
+            workflow["10"]["inputs"]["grow_mask_by"] = generation.grow_mask_by or 24
+            # KSampler denoise (node 3)
+            workflow["3"]["inputs"]["denoise"] = generation.denoising_strength or 0.95
+
+        else:
+            # txt2img - default
+            if generation.workflow_id:
+                workflow_template = self.db.query(WorkflowTemplate).filter(
+                    WorkflowTemplate.id == generation.workflow_id
+                ).first()
+                if workflow_template:
+                    workflow = copy.deepcopy(workflow_template.workflow_json)
+                else:
+                    workflow = copy.deepcopy(self._load_workflow("txt2img_sdxl"))
+            else:
+                workflow = copy.deepcopy(self._load_workflow("txt2img_sdxl"))
+
+            # Empty Latent Image (dimensions) - only for txt2img
+            for node_id, node in workflow.items():
+                if isinstance(node, dict) and node.get("class_type") == "EmptyLatentImage":
+                    node["inputs"]["width"] = generation.width
+                    node["inputs"]["height"] = generation.height
+                    break
+
+        # Common settings for all workflows (except upscale which returns early)
+
+        # Positive prompt (CLIPTextEncode) - node 6
+        if "6" in workflow and workflow["6"].get("class_type") == "CLIPTextEncode":
+            workflow["6"]["inputs"]["text"] = generation.prompt
+
+        # Negative prompt (CLIPTextEncode) - node 7
+        if "7" in workflow and workflow["7"].get("class_type") == "CLIPTextEncode":
+            workflow["7"]["inputs"]["text"] = generation.negative_prompt or ""
+
+        # KSampler settings - node 3
+        if "3" in workflow and workflow["3"].get("class_type") == "KSampler":
+            workflow["3"]["inputs"]["seed"] = generation.seed
+            workflow["3"]["inputs"]["steps"] = generation.steps
+            workflow["3"]["inputs"]["cfg"] = generation.cfg_scale
+            workflow["3"]["inputs"]["sampler_name"] = generation.sampler
 
         # Inject model filename if specified
         if generation.model_filename:
@@ -174,30 +358,28 @@ class GenerationService:
                     node["inputs"]["lora_name"] = generation.lora_filename
                     break
 
-        # Inject generation parameters
-        # Find nodes by class_type to be more robust
-        for node_id, node in workflow.items():
-            if not isinstance(node, dict):
-                continue
-            class_type = node.get("class_type", "")
+        return workflow
 
-            if class_type == "CLIPTextEncode":
-                # Check if this is positive or negative prompt based on connection
-                # Node 6 is typically positive, node 7 is typically negative
-                if node_id == "6":
-                    node["inputs"]["text"] = generation.prompt
-                elif node_id == "7":
-                    node["inputs"]["text"] = generation.negative_prompt or ""
+    def _prepare_upscale_workflow(
+        self,
+        generation: Generation,
+        source_image_name: str,
+    ) -> dict:
+        """Prepare upscale workflow."""
+        import copy
 
-            elif class_type == "KSampler":
-                node["inputs"]["seed"] = generation.seed
-                node["inputs"]["steps"] = generation.steps
-                node["inputs"]["cfg"] = generation.cfg_scale
-                node["inputs"]["sampler_name"] = generation.sampler
+        workflow = copy.deepcopy(self._load_workflow("upscale_realesrgan"))
 
-            elif class_type == "EmptyLatentImage":
-                node["inputs"]["width"] = generation.width
-                node["inputs"]["height"] = generation.height
+        # Source image (LoadImage node 1)
+        workflow["1"]["inputs"]["image"] = source_image_name
+
+        # Upscale model (node 2)
+        if generation.upscale_model:
+            workflow["2"]["inputs"]["model_name"] = generation.upscale_model
+
+        # Sharpening (node 4) - alpha controls sharpening strength
+        sharpen_amount = generation.sharpen_amount or 0.0
+        workflow["4"]["inputs"]["alpha"] = sharpen_amount
 
         return workflow
 
@@ -208,7 +390,6 @@ async def process_generation_job(job: Job):
     from app.database import get_db_session
 
     generation_id = job.params["generation_id"]
-    workflow = job.params["workflow"]
 
     # Retry settings for model loading race condition
     max_retries = 3
@@ -228,6 +409,44 @@ async def process_generation_job(job: Job):
                 "id": generation_id,
                 "status": "processing",
             })
+
+            # For inpainting/upscaling/outpainting, upload source image to ComfyUI
+            source_image_name = None
+            mask_image_name = None
+            gen_type = generation.generation_type or "txt2img"
+
+            if gen_type in ("inpaint", "upscale", "outpaint"):
+                # Get source generation image
+                source_gen = db.query(Generation).filter(
+                    Generation.id == generation.source_generation_id
+                ).first()
+                if not source_gen or not source_gen.image_path:
+                    raise ValueError("Source generation image not found")
+
+                # Read source image and upload to ComfyUI
+                storage_path = Path(settings.storage_path)
+                source_path = storage_path / source_gen.image_path
+                with open(source_path, "rb") as f:
+                    source_data = f.read()
+                source_image_name = await comfyui_client.upload_image(
+                    source_data, f"{generation_id}_source.webp"
+                )
+
+                # For inpainting, also upload the mask
+                if gen_type == "inpaint":
+                    if not generation.mask_path:
+                        raise ValueError("Mask image not found")
+
+                    mask_path = storage_path / generation.mask_path
+                    with open(mask_path, "rb") as f:
+                        mask_data = f.read()
+                    mask_image_name = await comfyui_client.upload_image(
+                        mask_data, f"{generation_id}_mask.png"
+                    )
+
+            # Prepare workflow - need a service instance for this
+            service = GenerationService(db)
+            workflow = service._prepare_workflow(generation, source_image_name, mask_image_name)
 
             # Retry loop for transient ComfyUI errors (e.g., model not loaded yet)
             result = None
@@ -270,12 +489,12 @@ async def process_generation_job(job: Job):
                 with open(image_path, "wb") as f:
                     f.write(image_bytes)
 
-                # Create thumbnail
+                # Create thumbnail with LANCZOS resampling for quality
                 thumb_filename = f"{generation_id}_thumb.webp"
                 thumb_path = images_path / thumb_filename
                 img = Image.open(io.BytesIO(image_bytes))
-                img.thumbnail((256, 256))
-                img.save(thumb_path, "WEBP", lossless=True)
+                img.thumbnail((256, 256), Image.Resampling.LANCZOS)
+                img.save(thumb_path, "WEBP", quality=80)
 
                 # Clean up ComfyUI output file
                 comfyui_output_path = storage_path / "comfyui-output"

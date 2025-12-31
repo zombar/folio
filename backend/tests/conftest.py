@@ -6,6 +6,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
+from app.services.job_queue import init_job_queue
 
 
 # In-memory SQLite for testing
@@ -32,8 +33,11 @@ def db_session():
 
 
 @pytest.fixture(scope="function")
-def client(db_session):
+def client(db_session, tmp_path):
     """Create a test client with database override."""
+    # Initialize job queue with temp directory
+    init_job_queue(tmp_path)
+
     def override_get_db():
         try:
             yield db_session
