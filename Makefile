@@ -1,4 +1,4 @@
-.PHONY: help init build build-fresh up up-gpu down restart logs ps clean test test-backend test-frontend lint lint-backend lint-frontend shell-backend shell-frontend
+.PHONY: help init build build-fresh up up-gpu up-rocm down restart logs ps clean test test-backend test-frontend lint lint-backend lint-frontend shell-backend shell-frontend
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -32,8 +32,16 @@ up-gpu: ## Start all services including ComfyUI (requires NVIDIA GPU)
 	@echo "  Frontend: http://localhost:5173"
 	@echo "  ComfyUI:  http://localhost:8188"
 
+up-rocm: ## Start all services including ComfyUI (requires AMD GPU with ROCm)
+	@docker run --rm -v $(PWD)/storage:/storage alpine sh -c "mkdir -p /storage/comfyui-output /storage/images && chmod -R 777 /storage/comfyui-output /storage/images"
+	docker compose --profile rocm up -d
+	@echo ""
+	@echo "  Backend:  http://localhost:8010"
+	@echo "  Frontend: http://localhost:5173"
+	@echo "  ComfyUI:  http://localhost:8188"
+
 down: ## Stop all services
-	docker compose --profile gpu down
+	docker compose --profile gpu --profile rocm down
 
 restart: ## Restart all services
 	docker compose restart
@@ -45,7 +53,7 @@ ps: ## Show running containers
 	docker compose ps
 
 clean: ## Stop and remove containers, volumes
-	docker compose --profile gpu down -v --remove-orphans
+	docker compose --profile gpu --profile rocm down -v --remove-orphans
 
 test: test-backend test-frontend ## Run all tests
 
