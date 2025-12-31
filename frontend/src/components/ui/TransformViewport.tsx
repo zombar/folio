@@ -527,7 +527,7 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
                 ref={displayCanvasRef}
                 width={contentWidth}
                 height={contentHeight}
-                className="absolute inset-0 pointer-events-none rounded-lg"
+                className="absolute inset-0 pointer-events-none"
                 style={{ opacity: 0.6 }}
               />
             </>

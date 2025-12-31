@@ -200,7 +200,7 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
 
   if (isLoading || !generation) {
     return (
-      <div className="relative w-full h-[calc(100vh-12rem)] min-h-[400px] bg-neutral-100 dark:bg-neutral-900 rounded-lg flex items-center justify-center">
+      <div className="relative w-full h-[calc(100vh-12rem)] min-h-[400px] bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center">
         <Spinner />
       </div>
     )
@@ -280,7 +280,7 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
   }
 
   return (
-    <div className="relative w-full h-[calc(100vh-12rem)] min-h-[400px] bg-neutral-100 dark:bg-neutral-900 rounded-lg overflow-hidden">
+    <div className="relative w-full h-[calc(100vh-12rem)] min-h-[400px] bg-neutral-100 dark:bg-neutral-900 overflow-hidden">
       {/* Main viewport */}
       <div className="w-full h-full">
         {isCompleted ? (
@@ -301,7 +301,6 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
               src={getImageUrl(generation.id)}
               alt={generation.prompt}
               style={{ width: generation.width, height: generation.height }}
-              className="rounded-lg"
               draggable={false}
             />
           </TransformViewport>
