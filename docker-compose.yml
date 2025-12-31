@@ -4,6 +4,8 @@ services:
   comfyui:
     build: ./docker/comfyui
     runtime: nvidia
+    profiles:
+      - gpu
     ports:
       - "8188:8188"
     volumes:
@@ -18,6 +20,13 @@ services:
       - CF_QUICK_TUNNELS=false
       - SERVICEPORTAL_PORT_HOST=
       - SYNCTHING_PORT_HOST=
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   backend:
     build: ./backend
@@ -31,8 +40,6 @@ services:
       - COMFYUI_URL=http://comfyui:8188
       - STORAGE_PATH=/app/storage
       - DATABASE_URL=sqlite:///./data/folio.db
-    depends_on:
-      - comfyui
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8010", "--reload"]
 
   frontend:
@@ -43,6 +50,6 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:8010
+      - VITE_API_URL=http://backend:8010
     depends_on:
       - backend

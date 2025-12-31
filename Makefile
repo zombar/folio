@@ -1,4 +1,4 @@
-.PHONY: help build up down restart logs ps clean test test-backend test-frontend shell-backend shell-frontend
+.PHONY: help build up up-gpu down restart logs ps clean test test-backend test-frontend shell-backend shell-frontend
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -6,11 +6,21 @@ help: ## Show this help
 build: ## Build all containers
 	docker compose build
 
-up: ## Start all services
+up: ## Start backend + frontend (no GPU)
 	docker compose up -d
+	@echo ""
+	@echo "  Backend:  http://localhost:8010"
+	@echo "  Frontend: http://localhost:5173"
+
+up-gpu: ## Start all services including ComfyUI (requires NVIDIA GPU)
+	docker compose --profile gpu up -d
+	@echo ""
+	@echo "  Backend:  http://localhost:8010"
+	@echo "  Frontend: http://localhost:5173"
+	@echo "  ComfyUI:  http://localhost:8188"
 
 down: ## Stop all services
-	docker compose down
+	docker compose --profile gpu down
 
 restart: ## Restart all services
 	docker compose restart
@@ -22,7 +32,7 @@ ps: ## Show running containers
 	docker compose ps
 
 clean: ## Stop and remove containers, volumes
-	docker compose down -v --remove-orphans
+	docker compose --profile gpu down -v --remove-orphans
 
 test: test-backend test-frontend ## Run all tests
 
