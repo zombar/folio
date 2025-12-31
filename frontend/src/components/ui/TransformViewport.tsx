@@ -302,6 +302,17 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
     }
   }, [maskMode, contentWidth, contentHeight, onMaskChange])
 
+  // Marching ants animation offset
+  const [antOffset, setAntOffset] = useState(0)
+
+  useEffect(() => {
+    if (!maskMode) return
+    const interval = setInterval(() => {
+      setAntOffset(prev => (prev + 1) % 16)
+    }, 100)
+    return () => clearInterval(interval)
+  }, [maskMode])
+
   useEffect(() => {
     if (!maskMode || !maskCanvasRef.current || !displayCanvasRef.current) return
 
@@ -318,21 +329,58 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
 
       const maskData = maskCtx.getImageData(0, 0, contentWidth, contentHeight)
       const coloredData = displayCtx.createImageData(contentWidth, contentHeight)
+      const width = contentWidth
+      const height = contentHeight
 
-      for (let i = 0; i < maskData.data.length; i += 4) {
-        if (maskData.data[i + 3] > 0) {
-          coloredData.data[i] = 255     // R (Orange highlight)
-          coloredData.data[i + 1] = 87  // G
-          coloredData.data[i + 2] = 34  // B
-          coloredData.data[i + 3] = 180 // A
+      // Helper to check if pixel is masked
+      const isMasked = (x: number, y: number) => {
+        if (x < 0 || x >= width || y < 0 || y >= height) return false
+        const idx = (y * width + x) * 4
+        return maskData.data[idx + 3] > 0
+      }
+
+      // Helper to check if pixel is on edge (has at least one non-masked neighbor)
+      const isEdge = (x: number, y: number) => {
+        if (!isMasked(x, y)) return false
+        return !isMasked(x - 1, y) || !isMasked(x + 1, y) ||
+               !isMasked(x, y - 1) || !isMasked(x, y + 1)
+      }
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const i = (y * width + x) * 4
+          if (maskData.data[i + 3] > 0) {
+            if (isEdge(x, y)) {
+              // Marching ants: alternating light/dark dashed outline
+              const dashPos = (x + y + antOffset) % 16
+              if (dashPos < 8) {
+                // Dark dash
+                coloredData.data[i] = 40      // R
+                coloredData.data[i + 1] = 40  // G
+                coloredData.data[i + 2] = 40  // B
+                coloredData.data[i + 3] = 255 // A
+              } else {
+                // Light dash
+                coloredData.data[i] = 255     // R
+                coloredData.data[i + 1] = 255 // G
+                coloredData.data[i + 2] = 255 // B
+                coloredData.data[i + 3] = 255 // A
+              }
+            } else {
+              // Subtle grey fill - will be inverted via CSS mix-blend-mode
+              coloredData.data[i] = 128     // R (mid-grey)
+              coloredData.data[i + 1] = 128 // G
+              coloredData.data[i + 2] = 128 // B
+              coloredData.data[i + 3] = 80  // A (subtle)
+            }
+          }
         }
       }
       displayCtx.putImageData(coloredData, 0, 0)
     }
 
-    const interval = setInterval(updateDisplay, 50)
-    return () => clearInterval(interval)
-  }, [maskMode, contentWidth, contentHeight])
+    updateDisplay()
+  }, [maskMode, contentWidth, contentHeight, antOffset])
 
   const getContentCoordinates = useCallback((clientX: number, clientY: number) => {
     const container = containerRef.current
@@ -538,7 +586,7 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
                 width={contentWidth}
                 height={contentHeight}
                 className="absolute inset-0 pointer-events-none"
-                style={{ opacity: 0.6 }}
+                style={{ mixBlendMode: 'difference' }}
               />
             </>
           )}
