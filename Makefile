@@ -1,0 +1,39 @@
+.PHONY: help build up down restart logs ps clean test test-backend test-frontend shell-backend shell-frontend
+
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+build: ## Build all containers
+	docker compose build
+
+up: ## Start all services
+	docker compose up -d
+
+down: ## Stop all services
+	docker compose down
+
+restart: ## Restart all services
+	docker compose restart
+
+logs: ## Follow logs from all services
+	docker compose logs -f
+
+ps: ## Show running containers
+	docker compose ps
+
+clean: ## Stop and remove containers, volumes
+	docker compose down -v --remove-orphans
+
+test: test-backend test-frontend ## Run all tests
+
+test-backend: ## Run backend tests
+	cd backend && python -m pytest -v
+
+test-frontend: ## Run frontend tests
+	cd frontend && npm test -- --run
+
+shell-backend: ## Open shell in backend container
+	docker compose exec backend /bin/bash
+
+shell-frontend: ## Open shell in frontend container
+	docker compose exec frontend /bin/sh

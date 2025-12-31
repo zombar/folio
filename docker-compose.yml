@@ -1,0 +1,48 @@
+name: folio
+
+services:
+  comfyui:
+    build: ./docker/comfyui
+    runtime: nvidia
+    ports:
+      - "8188:8188"
+    volumes:
+      - ./models:/opt/ComfyUI/models
+      - ./storage/comfyui-output:/opt/ComfyUI/output
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - GPU_COUNT=1
+      - COMFYUI_ARGS=--listen 0.0.0.0
+      - WEB_ENABLE_AUTH=false
+      - SKIP_ACL=true
+      - CF_QUICK_TUNNELS=false
+      - SERVICEPORTAL_PORT_HOST=
+      - SYNCTHING_PORT_HOST=
+
+  backend:
+    build: ./backend
+    ports:
+      - "8010:8010"
+    volumes:
+      - ./storage:/app/storage
+      - ./data:/app/data
+      - ./backend:/app
+    environment:
+      - COMFYUI_URL=http://comfyui:8188
+      - STORAGE_PATH=/app/storage
+      - DATABASE_URL=sqlite:///./data/folio.db
+    depends_on:
+      - comfyui
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8010", "--reload"]
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8010
+    depends_on:
+      - backend
