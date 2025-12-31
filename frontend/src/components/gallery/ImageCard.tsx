@@ -65,8 +65,11 @@ export default function ImageCard({ generation, onClick, onDelete, onSetCover, i
      <span className="text-sm text-neutral-500 dark:text-neutral-400">{generation.progress}%</span>
     </div>
    ) : generation.status === 'failed' ? (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
-     <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div
+     className="w-full h-full flex flex-col items-center justify-center bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+     title={generation.error_message || 'Generation failed'}
+    >
+     <svg className="w-8 h-8 mb-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
        strokeLinecap="round"
        strokeLinejoin="round"
@@ -74,7 +77,7 @@ export default function ImageCard({ generation, onClick, onDelete, onSetCover, i
        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
       />
      </svg>
-     <span className="text-xs">Failed</span>
+     <span className="text-xs text-red-500">Failed</span>
     </div>
    ) : (
     <div className="w-full h-full flex items-center justify-center bg-neutral-100 dark:bg-neutral-800">

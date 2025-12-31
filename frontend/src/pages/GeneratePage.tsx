@@ -49,7 +49,7 @@ export default function GeneratePage() {
  const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault()
 
-  if (!selectedPortfolio || !prompt.trim()) return
+  if (!selectedPortfolio || !prompt.trim() || !modelFilename) return
 
   try {
    await createGeneration.mutateAsync(getParams(selectedPortfolio))
@@ -171,7 +171,7 @@ export default function GeneratePage() {
      type="submit"
      size="lg"
      loading={createGeneration.isPending}
-     disabled={!selectedPortfolio || !prompt.trim()}
+     disabled={!selectedPortfolio || !prompt.trim() || !modelFilename}
      className="w-full"
     >
      Generate {quantity > 1 ? `(${quantity} images)` : ''}
