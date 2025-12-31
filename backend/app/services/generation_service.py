@@ -204,10 +204,15 @@ class GenerationService:
 
 async def process_generation_job(job: Job):
     """Process a generation job."""
+    import asyncio
     from app.database import get_db_session
 
     generation_id = job.params["generation_id"]
     workflow = job.params["workflow"]
+
+    # Retry settings for model loading race condition
+    max_retries = 3
+    retry_delay = 2.0
 
     with get_db_session() as db:
         generation = db.query(Generation).filter(Generation.id == generation_id).first()
@@ -224,13 +229,28 @@ async def process_generation_job(job: Job):
                 "status": "processing",
             })
 
-            # Submit to ComfyUI
-            prompt_id = await comfyui_client.submit_workflow(workflow)
-            generation.comfyui_prompt_id = prompt_id
-            db.commit()
+            # Retry loop for transient ComfyUI errors (e.g., model not loaded yet)
+            result = None
+            for attempt in range(max_retries):
+                # Submit to ComfyUI
+                prompt_id = await comfyui_client.submit_workflow(workflow)
+                generation.comfyui_prompt_id = prompt_id
+                db.commit()
 
-            # Wait for completion
-            result = await comfyui_client.wait_for_completion(prompt_id)
+                # Wait for completion
+                result = await comfyui_client.wait_for_completion(prompt_id)
+
+                # Check if it's a retryable error (model not loaded yet)
+                if result.status == "failed" and result.error:
+                    error_lower = result.error.lower()
+                    is_model_loading_error = (
+                        "clip input is invalid" in error_lower
+                        or "none" in error_lower
+                    )
+                    if is_model_loading_error and attempt < max_retries - 1:
+                        await asyncio.sleep(retry_delay)
+                        continue
+                break
 
             if result.status == "completed" and result.images:
                 # Download and save image
