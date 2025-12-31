@@ -6,6 +6,8 @@ from app.config import settings
 from app.database import create_tables, SessionLocal
 from app.api import portfolios, generations, images, events, health, models, workflows
 from app.services.builtin_workflows import seed_builtin_workflows
+from app.services.job_queue import job_queue
+from app.services.generation_service import process_generation_job
 
 
 @asynccontextmanager
@@ -21,8 +23,14 @@ async def lifespan(app: FastAPI):
     finally:
         db.close()
 
+    # Start job queue worker
+    job_queue.set_processor(process_generation_job)
+    await job_queue.start_worker()
+
     yield
-    # Shutdown: cleanup if needed
+
+    # Shutdown: stop job queue worker
+    await job_queue.stop_worker()
 
 
 app = FastAPI(
