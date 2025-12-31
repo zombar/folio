@@ -1,30 +1,53 @@
 # Folio
 
-**Think in collections, not files.** Folio is a portfolio-first AI image generator that treats your creative explorations as first-class citizens.
+A local AI image generator with portfolio organization. Uses ComfyUI for SDXL image generation with a React frontend and FastAPI backend.
 
-Built for artists and creators who want to iterate fast, organize ideas visually, and never lose a promising direction.
+## Requirements
 
-## Why Folio?
+- Docker with Compose
+- NVIDIA GPU with 8GB+ VRAM
+- ~20GB disk for models
 
-Most AI image tools dump outputs into an endless scroll. Folio takes a different approach:
+## Model Setup
 
-- **Portfolios** — Group related generations together. "Cyberpunk portraits", "Logo concepts v2", "That weird dream I had"
-- **Iteration** — Right-click any image to spawn variations. Your creative lineage stays connected
-- **Local-first** — Your images, your GPU, your data. Runs alongside ComfyUI via Docker
+Place model files in the `models/` directory. This directory is mounted to ComfyUI at `/opt/ComfyUI/models`.
 
-## Quick Start
-
-```bash
-# Clone and start
-git clone https://github.com/yourusername/folio.git
-cd folio
-docker compose up -d
-
-# Open in browser
-open http://localhost:5173
+```
+models/
+├── checkpoints/          # SDXL base models (.safetensors)
+├── vae/                  # VAE models
+├── loras/                # LoRA models
+└── clip/                 # CLIP models
 ```
 
-**Requirements:** Docker, NVIDIA GPU with 8GB+ VRAM, ~20GB disk for models
+For SDXL, download a checkpoint such as `sd_xl_base_1.0.safetensors` and place it in `models/checkpoints/`.
+
+## Usage
+
+```bash
+# Show all available commands
+make help
+
+# Start all services (requires GPU)
+make up-gpu
+
+# Start backend + frontend only (no GPU/ComfyUI)
+make up
+
+# Stop all services
+make down
+
+# View logs
+make logs
+
+# Run tests
+make test
+```
+
+Services:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:8010
+- ComfyUI: http://localhost:8188 (with `make up-gpu`)
 
 ## Architecture
 
@@ -43,17 +66,6 @@ open http://localhost:5173
 - **Backend:** FastAPI + SQLAlchemy + asyncio job queue
 - **Generation:** ComfyUI with SDXL workflows
 
-## Features
-
-| Feature | Status |
-|---------|--------|
-| Portfolio management | Phase 1 |
-| Text-to-image generation | Phase 1 |
-| Generation queue with progress | Phase 1 |
-| Image iteration & variations | Phase 1 |
-| Inpainting | Phase 2 |
-| Outpainting | Phase 2 |
-
 ## Development
 
 ```bash
@@ -61,14 +73,12 @@ open http://localhost:5173
 cd backend
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-pytest                    # Run tests
-uvicorn app.main:app --reload
+pytest
 
 # Frontend
 cd frontend
 npm install
-npm test                  # Run tests
-npm run dev
+npm test
 ```
 
 ## Project Structure
@@ -89,6 +99,7 @@ folio/
 │   │   ├── hooks/        # Custom hooks
 │   │   └── stores/       # Zustand stores
 │   └── tests/
+├── models/               # ComfyUI model files
 └── docker-compose.yml
 ```
 
