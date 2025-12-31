@@ -22,6 +22,7 @@ up: ## Start backend + frontend (no GPU)
 	@echo "  Frontend: http://localhost:5173"
 
 up-gpu: ## Start all services including ComfyUI (requires NVIDIA GPU)
+	@docker run --rm -v $(PWD)/storage:/storage alpine sh -c "mkdir -p /storage/comfyui-output /storage/images && chmod -R 777 /storage/comfyui-output /storage/images"
 	docker compose --profile gpu up -d
 	@echo ""
 	@echo "  Backend:  http://localhost:8010"

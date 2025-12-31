@@ -79,7 +79,13 @@ class ComfyUIClient:
                 # Check for errors
                 if status.get("status_str") == "error":
                     messages = status.get("messages", [])
-                    error_msg = messages[0][1] if messages else "Unknown error"
+                    error_msg = "Unknown error"
+                    # Find the execution_error message
+                    for msg in messages:
+                        if msg[0] == "execution_error" and len(msg) > 1:
+                            error_data = msg[1]
+                            error_msg = error_data.get("exception_message", str(error_data))
+                            break
                     return JobResult(
                         prompt_id=prompt_id,
                         status="failed",

@@ -4,9 +4,10 @@ import { Spinner } from '../ui'
 interface ImageCardProps {
  generation: Generation
  onClick?: () => void
+ onDelete?: (e: React.MouseEvent) => void
 }
 
-export default function ImageCard({ generation, onClick }: ImageCardProps) {
+export default function ImageCard({ generation, onClick, onDelete }: ImageCardProps) {
  const getThumbnailUrl = (id: string) => `/api/images/${id}/thumbnail`
 
  return (
@@ -14,6 +15,21 @@ export default function ImageCard({ generation, onClick }: ImageCardProps) {
    onClick={onClick}
    className="relative aspect-square bg-neutral-100 dark:bg-neutral-800 overflow-hidden group cursor-pointer hover:ring-2 hover:ring-neutral-400 dark:hover:ring-neutral-500 transition-all"
   >
+   {/* Delete button */}
+   {onDelete && (
+    <button
+     onClick={(e) => {
+      e.stopPropagation()
+      onDelete(e)
+     }}
+     className="absolute top-1 right-1 z-10 w-6 h-6 flex items-center justify-center bg-black/60 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+     title="Delete"
+    >
+     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+     </svg>
+    </button>
+   )}
    {generation.status === 'completed' && generation.thumbnail_path ? (
     <img
      src={getThumbnailUrl(generation.id)}
