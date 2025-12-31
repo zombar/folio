@@ -29,7 +29,7 @@ export default function ParameterControls() {
     <div className="space-y-4">
       {/* Aspect ratio presets */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aspect Ratio</label>
+        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Aspect Ratio</label>
         <div className="flex gap-2">
           {presets.map((preset) => (
             <button
@@ -40,8 +40,8 @@ export default function ParameterControls() {
               }}
               className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                 width === preset.width && height === preset.height
-                  ? 'bg-gray-800 dark:bg-gray-100 text-white dark:text-gray-900'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                  ? 'bg-neutral-800 dark:bg-neutral-100 text-white dark:text-neutral-900'
+                  : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-600'
               }`}
             >
               {preset.label}
@@ -95,11 +95,11 @@ export default function ParameterControls() {
 
       {/* Sampler */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sampler</label>
+        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Sampler</label>
         <select
           value={sampler}
           onChange={(e) => setSampler(e.target.value)}
-          className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500"
+          className="w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-2 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-500"
         >
           {samplers.map((s) => (
             <option key={s} value={s}>

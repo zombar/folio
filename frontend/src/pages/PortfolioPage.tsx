@@ -24,7 +24,7 @@ export default function PortfolioPage() {
   if (portfolioLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Spinner size="lg" className="text-gray-500" />
+        <Spinner size="lg" className="text-neutral-500" />
       </div>
     )
   }
@@ -32,8 +32,8 @@ export default function PortfolioPage() {
   if (!portfolio) {
     return (
       <div className="text-center py-16">
-        <h2 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Portfolio not found</h2>
-        <Link to="/" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 underline">
+        <h2 className="text-lg font-medium text-neutral-700 dark:text-neutral-300 mb-2">Portfolio not found</h2>
+        <Link to="/" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 underline">
           Back to home
         </Link>
       </div>
@@ -44,9 +44,9 @@ export default function PortfolioPage() {
     <div>
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{portfolio.name}</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{portfolio.name}</h1>
           {portfolio.description && (
-            <p className="text-gray-500 dark:text-gray-400 mt-1">{portfolio.description}</p>
+            <p className="text-neutral-500 dark:text-neutral-400 mt-1">{portfolio.description}</p>
           )}
         </div>
         <div className="flex gap-2">
@@ -65,12 +65,12 @@ export default function PortfolioPage() {
 
       {generationsLoading ? (
         <div className="flex items-center justify-center h-64">
-          <Spinner size="lg" className="text-gray-500" />
+          <Spinner size="lg" className="text-neutral-500" />
         </div>
       ) : generations?.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
-            <svg className="w-8 h-8 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center">
+            <svg className="w-8 h-8 text-neutral-400 dark:text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -79,8 +79,8 @@ export default function PortfolioPage() {
               />
             </svg>
           </div>
-          <h2 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">No images yet</h2>
-          <p className="text-gray-500 mb-4">Generate your first image in this portfolio</p>
+          <h2 className="text-lg font-medium text-neutral-700 dark:text-neutral-300 mb-2">No images yet</h2>
+          <p className="text-neutral-500 mb-4">Generate your first image in this portfolio</p>
           <Link to={`/generate?portfolio=${id}`}>
             <Button>Generate Image</Button>
           </Link>

@@ -16,7 +16,7 @@ export default function ImageDetail({ generationId, onClose }: ImageDetailProps)
   if (isLoading || !generation) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-400" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-400" />
       </div>
     )
   }
@@ -53,7 +53,7 @@ export default function ImageDetail({ generationId, onClose }: ImageDetailProps)
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white z-10"
+        className="absolute top-4 right-4 p-2 hover:bg-neutral-800 rounded-lg text-neutral-400 hover:text-white z-10"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -69,13 +69,13 @@ export default function ImageDetail({ generationId, onClose }: ImageDetailProps)
             className="max-w-full max-h-full object-contain rounded-lg"
           />
         ) : (
-          <div className="text-gray-400">Image not available</div>
+          <div className="text-neutral-400">Image not available</div>
         )}
       </div>
 
       {/* Sidebar */}
       <div
-        className="w-80 bg-gray-900 border-l border-gray-800 p-6 overflow-y-auto"
+        className="w-80 bg-neutral-900 border-l border-neutral-800 p-6 overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-semibold text-white mb-4">Details</h2>
@@ -83,46 +83,46 @@ export default function ImageDetail({ generationId, onClose }: ImageDetailProps)
         {/* Prompt */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-400">Prompt</span>
+            <span className="text-sm font-medium text-neutral-400">Prompt</span>
             <button
               onClick={handleCopyPrompt}
-              className="text-xs text-gray-400 hover:text-gray-200"
+              className="text-xs text-neutral-400 hover:text-neutral-200"
             >
               {copied ? 'Copied!' : 'Copy'}
             </button>
           </div>
-          <p className="text-sm text-gray-300">{generation.prompt}</p>
+          <p className="text-sm text-neutral-300">{generation.prompt}</p>
         </div>
 
         {/* Negative prompt */}
         {generation.negative_prompt && (
           <div className="mb-4">
-            <span className="text-sm font-medium text-gray-400 block mb-2">Negative Prompt</span>
-            <p className="text-sm text-gray-300">{generation.negative_prompt}</p>
+            <span className="text-sm font-medium text-neutral-400 block mb-2">Negative Prompt</span>
+            <p className="text-sm text-neutral-300">{generation.negative_prompt}</p>
           </div>
         )}
 
         {/* Parameters */}
         <div className="mb-6 space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Size</span>
-            <span className="text-gray-300">{generation.width} x {generation.height}</span>
+            <span className="text-neutral-400">Size</span>
+            <span className="text-neutral-300">{generation.width} x {generation.height}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Seed</span>
-            <span className="text-gray-300 font-mono">{generation.seed}</span>
+            <span className="text-neutral-400">Seed</span>
+            <span className="text-neutral-300 font-mono">{generation.seed}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Steps</span>
-            <span className="text-gray-300">{generation.steps}</span>
+            <span className="text-neutral-400">Steps</span>
+            <span className="text-neutral-300">{generation.steps}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">CFG Scale</span>
-            <span className="text-gray-300">{generation.cfg_scale}</span>
+            <span className="text-neutral-400">CFG Scale</span>
+            <span className="text-neutral-300">{generation.cfg_scale}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Sampler</span>
-            <span className="text-gray-300">{generation.sampler}</span>
+            <span className="text-neutral-400">Sampler</span>
+            <span className="text-neutral-300">{generation.sampler}</span>
           </div>
         </div>
 

@@ -11,16 +11,16 @@ export default {
         pacifico: ['Pacifico', 'cursive'],
       },
       colors: {
-        // Ink/charcoal color palette for artist's easel aesthetic
+        // Pure grayscale palette for artist's easel aesthetic
         ink: {
-          DEFAULT: '#1f2937', // gray-800
-          dark: '#111827',    // gray-900
-          light: '#374151',   // gray-700
+          DEFAULT: '#262626', // neutral-800
+          dark: '#171717',    // neutral-900
+          light: '#404040',   // neutral-700
         },
         canvas: {
-          DEFAULT: '#f3f4f6', // gray-100
-          light: '#f9fafb',   // gray-50
-          dark: '#e5e7eb',    // gray-200
+          DEFAULT: '#f5f5f5', // neutral-100
+          light: '#fafafa',   // neutral-50
+          dark: '#e5e5e5',    // neutral-200
         },
       },
     },

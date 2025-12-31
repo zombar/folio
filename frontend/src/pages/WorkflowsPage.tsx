@@ -48,7 +48,7 @@ export default function WorkflowsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Workflows</h1>
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Workflows</h1>
         <Button onClick={() => setIsModalOpen(true)}>Add Workflow</Button>
       </div>
 
@@ -61,7 +61,7 @@ export default function WorkflowsPage() {
           {/* Built-in workflows */}
           {builtinWorkflows.length > 0 && (
             <section>
-              <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-3">Built-in Templates</h2>
+              <h2 className="text-lg font-semibold text-neutral-700 dark:text-neutral-300 mb-3">Built-in Templates</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {builtinWorkflows.map((workflow) => (
                   <WorkflowCard key={workflow.id} workflow={workflow} />
@@ -72,7 +72,7 @@ export default function WorkflowsPage() {
 
           {/* Custom workflows */}
           <section>
-            <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-3">Custom Workflows</h2>
+            <h2 className="text-lg font-semibold text-neutral-700 dark:text-neutral-300 mb-3">Custom Workflows</h2>
             {customWorkflows.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {customWorkflows.map((workflow) => (
@@ -85,7 +85,7 @@ export default function WorkflowsPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-neutral-500">
                 <p>No custom workflows yet.</p>
                 <p className="text-sm mt-1">
                   Click "Add Workflow" to import a ComfyUI workflow.
@@ -95,13 +95,13 @@ export default function WorkflowsPage() {
           </section>
 
           {/* Tips section */}
-          <section className="mt-8 p-4 bg-gray-200/50 dark:bg-gray-800/50 rounded-lg">
-            <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Tips</h3>
-            <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-1 list-disc list-inside">
+          <section className="mt-8 p-4 bg-neutral-200/50 dark:bg-neutral-800/50 rounded-lg">
+            <h3 className="font-semibold text-neutral-700 dark:text-neutral-300 mb-2">Tips</h3>
+            <ul className="text-sm text-neutral-500 dark:text-neutral-400 space-y-1 list-disc list-inside">
               <li>Export workflows from ComfyUI using "Save (API Format)" to get the JSON</li>
               <li>Workflows with a CheckpointLoaderSimple node will automatically use your selected model</li>
               <li>Workflows with a LoraLoader node will automatically use your selected LoRA</li>
-              <li>Find more workflows at <a href="https://comfyworkflows.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 dark:text-gray-400 hover:underline">comfyworkflows.com</a></li>
+              <li>Find more workflows at <a href="https://comfyworkflows.com" target="_blank" rel="noopener noreferrer" className="text-neutral-600 dark:text-neutral-400 hover:underline">comfyworkflows.com</a></li>
             </ul>
           </section>
         </>

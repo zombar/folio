@@ -12,17 +12,17 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor={inputId} className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
             {label}
           </label>
         )}
         <textarea
           ref={ref}
           id={inputId}
-          className={`w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none ${error ? 'border-gray-500 dark:border-gray-400' : ''} ${className}`}
+          className={`w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-3 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent resize-none ${error ? 'border-neutral-500 dark:border-neutral-400' : ''} ${className}`}
           {...props}
         />
-        {error && <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{error}</p>}
+        {error && <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{error}</p>}
       </div>
     )
   }

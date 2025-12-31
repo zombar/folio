@@ -121,7 +121,7 @@ export default function WorkflowModal({
         />
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
             Workflow JSON
           </label>
           <textarea
@@ -133,13 +133,13 @@ export default function WorkflowModal({
             onBlur={() => validateJson(workflowJson)}
             placeholder="Paste your ComfyUI workflow JSON here..."
             rows={10}
-            className={`w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-2 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 ${
-              jsonError ? 'border-gray-500 dark:border-gray-400' : 'border-gray-300 dark:border-gray-700'
+            className={`w-full bg-white dark:bg-neutral-800 border rounded-lg px-4 py-2 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-neutral-500 ${
+              jsonError ? 'border-neutral-500 dark:border-neutral-400' : 'border-neutral-300 dark:border-neutral-700'
             }`}
             required
           />
-          {jsonError && <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{jsonError}</p>}
-          <p className="mt-1 text-xs text-gray-500">
+          {jsonError && <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{jsonError}</p>}
+          <p className="mt-1 text-xs text-neutral-500">
             Export a workflow from ComfyUI (Save API format) and paste it here
           </p>
         </div>

@@ -25,7 +25,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   }, [theme])
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100 dark:bg-gray-900 transition-colors">
+    <div className="h-screen flex flex-col bg-neutral-100 dark:bg-neutral-900 transition-colors">
       <Header />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
