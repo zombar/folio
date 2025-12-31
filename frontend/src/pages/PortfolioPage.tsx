@@ -93,6 +93,11 @@ export default function PortfolioPage() {
   )
  }
 
+ // When viewing an image, show only the viewer
+ if (imageDetailId) {
+  return <ImageViewer generationId={imageDetailId} onClose={handleCloseImageViewer} />
+ }
+
  return (
   <div>
    <div className="flex items-start justify-between mb-6">
@@ -152,9 +157,7 @@ export default function PortfolioPage() {
     </div>
    </div>
 
-   {imageDetailId ? (
-    <ImageViewer generationId={imageDetailId} onClose={handleCloseImageViewer} />
-   ) : generationsLoading ? (
+   {generationsLoading ? (
     <div className="flex items-center justify-center h-64">
      <Spinner size="lg" className="text-neutral-500" />
     </div>
