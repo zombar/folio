@@ -640,6 +640,11 @@ async def process_generation_job(job: Job):
                     "status": "completed",
                     "image_path": generation.image_path,
                 })
+
+                # Auto-animate check for txt2img generations
+                if generation.generation_type == "txt2img":
+                    service = GenerationService(db)
+                    await service.maybe_auto_animate(generation.portfolio_id)
             else:
                 generation.status = GenerationStatus.FAILED
                 generation.error_message = result.error or "Unknown error"

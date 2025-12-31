@@ -9,6 +9,7 @@ import PhotoSizeSelectLargeIcon from '@mui/icons-material/PhotoSizeSelectLarge'
 import OpenInFullIcon from '@mui/icons-material/OpenInFull'
 import ClearIcon from '@mui/icons-material/Clear'
 import AutorenewIcon from '@mui/icons-material/Autorenew'
+import MovieIcon from '@mui/icons-material/Movie'
 import { TransformViewport, ImageToolbar, ViewportPanel, Input, Spinner } from '../ui'
 import type { TransformViewportHandle } from '../ui'
 import { useGeneration, useGenerations, useDeleteGeneration, useCreateGeneration } from '../../hooks/useGenerations'
@@ -206,6 +207,27 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
     }
   }, [generation, outpaintPrompt, outpaintLeft, outpaintRight, outpaintTop, outpaintBottom, createGeneration, queryClient])
 
+  const handleSubmitAnimate = useCallback(async () => {
+    if (!generation) return
+
+    setIsSubmitting(true)
+    try {
+      const params: GenerationParams = {
+        portfolio_id: generation.portfolio_id,
+        prompt: generation.prompt,
+        generation_type: 'animate',
+        source_generation_id: generation.id,
+        motion_bucket_id: 127,
+        fps: 8,
+        duration_seconds: 3.0,
+      }
+      await createGeneration.mutateAsync(params)
+      queryClient.invalidateQueries({ queryKey: ['generations'] })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [generation, createGeneration, queryClient])
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -286,6 +308,13 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
         tooltip: 'Extend (Outpaint)',
         onClick: () => setActivePanel('outpaint'),
         disabled: !isCompleted,
+      },
+      {
+        id: 'animate',
+        icon: MovieIcon,
+        tooltip: 'Animate',
+        onClick: handleSubmitAnimate,
+        disabled: !isCompleted || isSubmitting,
       },
       { type: 'divider' as const },
       {
