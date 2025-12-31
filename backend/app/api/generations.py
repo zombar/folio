@@ -27,8 +27,19 @@ async def create_generation(
     data: GenerationCreate,
     service: GenerationService = Depends(get_generation_service),
 ):
-    """Create a new image generation job."""
-    return await service.create(data)
+    """Create a new image generation job. If quantity > 1, creates multiple jobs."""
+    first_generation = None
+    for i in range(data.quantity):
+        # Create a copy of data with seed=None for variations after the first
+        if i == 0:
+            generation = await service.create(data)
+            first_generation = generation
+        else:
+            # Create variation with different seed
+            variation_data = data.model_copy()
+            variation_data.seed = None  # Let each variation get a random seed
+            await service.create(variation_data)
+    return first_generation
 
 
 @router.get("/generations/{generation_id}", response_model=GenerationResponse)

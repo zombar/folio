@@ -33,24 +33,26 @@ export default function Sidebar() {
       Home
      </Link>
 
-     <Link
-      to="/generate"
-      className={`flex items-center gap-3 px-3 py-2 transition-colors ${
-       location.pathname === '/generate'
-        ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white'
-        : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white'
-      }`}
-     >
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-       <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 4v16m8-8H4"
-       />
-      </svg>
-      Generate
-     </Link>
+     {portfolios && portfolios.length > 0 && (
+      <Link
+       to="/generate"
+       className={`flex items-center gap-3 px-3 py-2 transition-colors ${
+        location.pathname === '/generate'
+         ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white'
+         : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white'
+       }`}
+      >
+       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+         strokeLinecap="round"
+         strokeLinejoin="round"
+         strokeWidth={2}
+         d="M12 4v16m8-8H4"
+        />
+       </svg>
+       Generate
+      </Link>
+     )}
 
      <Link
       to="/workflows"

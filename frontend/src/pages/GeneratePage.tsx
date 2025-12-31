@@ -26,13 +26,25 @@ export default function GeneratePage() {
  const setWorkflowId = useGenerationStore((state) => state.setWorkflowId)
  const setModelFilename = useGenerationStore((state) => state.setModelFilename)
  const setLoraFilename = useGenerationStore((state) => state.setLoraFilename)
+ const quantity = useGenerationStore((state) => state.quantity)
+ const setQuantity = useGenerationStore((state) => state.setQuantity)
 
- // Update selected portfolio when preselected changes
+ // Update selected portfolio when preselected changes or auto-select latest
  useEffect(() => {
   if (preselectedPortfolio) {
    setSelectedPortfolio(preselectedPortfolio)
+  } else if (!selectedPortfolio && portfolios && portfolios.length > 0) {
+   // Auto-select the first portfolio (most recent) if no selection
+   setSelectedPortfolio(portfolios[0].id)
   }
- }, [preselectedPortfolio])
+ }, [preselectedPortfolio, portfolios, selectedPortfolio])
+
+ // Redirect to home if no portfolios exist
+ useEffect(() => {
+  if (portfolios && portfolios.length === 0) {
+   navigate('/')
+  }
+ }, [portfolios, navigate])
 
  const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault()
@@ -50,7 +62,19 @@ export default function GeneratePage() {
 
  return (
   <div className="max-w-2xl mx-auto">
-   <h1 className="text-2xl font-bold mb-6 text-neutral-900 dark:text-white">Generate Image</h1>
+   <div className="flex items-center justify-between mb-6">
+    <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Generate Image</h1>
+    <button
+     type="button"
+     onClick={reset}
+     className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 rounded transition-colors"
+     title="Clear form"
+    >
+     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+     </svg>
+    </button>
+   </div>
 
    <form onSubmit={handleSubmit} className="space-y-6">
     {/* Portfolio selection */}
@@ -120,6 +144,28 @@ export default function GeneratePage() {
      </div>
     )}
 
+    {/* Quantity slider */}
+    <div>
+     <div className="flex items-center justify-between mb-2">
+      <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+       Quantity
+      </label>
+      <span className="text-sm text-neutral-500 dark:text-neutral-400">{quantity}</span>
+     </div>
+     <input
+      type="range"
+      min={1}
+      max={10}
+      value={quantity}
+      onChange={(e) => setQuantity(Number(e.target.value))}
+      className="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-neutral-900 dark:accent-neutral-100"
+     />
+     <div className="flex justify-between text-xs text-neutral-400 mt-1">
+      <span>1</span>
+      <span>10</span>
+     </div>
+    </div>
+
     {/* Submit */}
     <Button
      type="submit"
@@ -128,7 +174,7 @@ export default function GeneratePage() {
      disabled={!selectedPortfolio || !prompt.trim()}
      className="w-full"
     >
-     Generate
+     Generate {quantity > 1 ? `(${quantity} images)` : ''}
     </Button>
    </form>
   </div>

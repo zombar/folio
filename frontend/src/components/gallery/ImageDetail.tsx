@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '../ui'
-import { useGeneration, useIterateGeneration, useDeleteGeneration } from '../../hooks/useGenerations'
+import { useGeneration, useDeleteGeneration } from '../../hooks/useGenerations'
+import { useGenerationStore } from '../../stores/generationStore'
 
 interface ImageDetailProps {
  generationId: string
@@ -8,9 +10,10 @@ interface ImageDetailProps {
 }
 
 export default function ImageDetail({ generationId, onClose }: ImageDetailProps) {
+ const navigate = useNavigate()
  const { data: generation, isLoading } = useGeneration(generationId)
- const iterateGeneration = useIterateGeneration()
  const deleteGeneration = useDeleteGeneration()
+ const loadFromGeneration = useGenerationStore((state) => state.loadFromGeneration)
  const [copied, setCopied] = useState(false)
 
  if (isLoading || !generation) {
@@ -36,9 +39,10 @@ export default function ImageDetail({ generationId, onClose }: ImageDetailProps)
   link.click()
  }
 
- const handleIterate = async () => {
-  await iterateGeneration.mutateAsync(generation.id)
+ const handleIterate = () => {
+  loadFromGeneration(generation)
   onClose()
+  navigate(`/generate?portfolio=${generation.portfolio_id}`)
  }
 
  const handleDelete = async () => {
@@ -126,11 +130,58 @@ export default function ImageDetail({ generationId, onClose }: ImageDetailProps)
      </div>
     </div>
 
+    {/* Model & Workflow */}
+    {(generation.model_filename || generation.lora_filename || generation.workflow_id) && (
+     <div className="mb-6 space-y-2">
+      <h3 className="text-sm font-medium text-neutral-400 mb-2">Model & Workflow</h3>
+      {generation.model_filename && (
+       <div className="flex justify-between text-sm">
+        <span className="text-neutral-400">Model</span>
+        <span className="text-neutral-300 truncate ml-2 max-w-[180px]" title={generation.model_filename}>
+         {generation.model_filename.split('/').pop()?.replace(/\.[^.]+$/, '')}
+        </span>
+       </div>
+      )}
+      {generation.lora_filename && (
+       <div className="flex justify-between text-sm">
+        <span className="text-neutral-400">LoRA</span>
+        <span className="text-neutral-300 truncate ml-2 max-w-[180px]" title={generation.lora_filename}>
+         {generation.lora_filename.split('/').pop()?.replace(/\.[^.]+$/, '')}
+        </span>
+       </div>
+      )}
+      {generation.workflow_id && (
+       <div className="flex justify-between text-sm">
+        <span className="text-neutral-400">Workflow</span>
+        <span className="text-neutral-300">{generation.workflow_id}</span>
+       </div>
+      )}
+     </div>
+    )}
+
+    {/* Timestamps */}
+    <div className="mb-6 space-y-2">
+     <h3 className="text-sm font-medium text-neutral-400 mb-2">Timestamps</h3>
+     <div className="flex justify-between text-sm">
+      <span className="text-neutral-400">Created</span>
+      <span className="text-neutral-300">
+       {new Date(generation.created_at).toLocaleString()}
+      </span>
+     </div>
+     {generation.completed_at && (
+      <div className="flex justify-between text-sm">
+       <span className="text-neutral-400">Completed</span>
+       <span className="text-neutral-300">
+        {new Date(generation.completed_at).toLocaleString()}
+       </span>
+      </div>
+     )}
+    </div>
+
     {/* Actions */}
     <div className="space-y-2">
      <Button
       onClick={handleIterate}
-      loading={iterateGeneration.isPending}
       className="w-full"
      >
       Generate Variation
