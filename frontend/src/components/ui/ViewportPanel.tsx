@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import type { SvgIconComponent } from '@mui/icons-material'
 import CloseIcon from '@mui/icons-material/Close'
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
@@ -32,9 +32,36 @@ export function ViewportPanel({
   onClose,
   className = '',
 }: ViewportPanelProps) {
+  const panelRef = useRef<HTMLDivElement>(null)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+
+  const clampOffset = useCallback((x: number, y: number) => {
+    const panel = panelRef.current
+    if (!panel) return { x, y }
+
+    const container = panel.parentElement
+    if (!container) return { x, y }
+
+    const panelRect = panel.getBoundingClientRect()
+    const containerRect = container.getBoundingClientRect()
+
+    // Calculate the panel's base position (without offset)
+    const baseLeft = panelRect.left - offset.x
+    const baseTop = panelRect.top - offset.y
+
+    // Calculate bounds
+    const minX = containerRect.left - baseLeft + 16 // 16px padding
+    const maxX = containerRect.right - baseLeft - panelRect.width - 16
+    const minY = containerRect.top - baseTop + 16
+    const maxY = containerRect.bottom - baseTop - panelRect.height - 16
+
+    return {
+      x: Math.max(minX, Math.min(maxX, x)),
+      y: Math.max(minY, Math.min(maxY, y)),
+    }
+  }, [offset])
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -46,10 +73,9 @@ export function ViewportPanel({
     if (!isDragging) return
 
     const handleMouseMove = (e: MouseEvent) => {
-      setOffset({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
-      })
+      const newX = e.clientX - dragStart.x
+      const newY = e.clientY - dragStart.y
+      setOffset(clampOffset(newX, newY))
     }
 
     const handleMouseUp = () => {
@@ -62,12 +88,13 @@ export function ViewportPanel({
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isDragging, dragStart])
+  }, [isDragging, dragStart, clampOffset])
 
   const positionClass = position === 'top' ? 'top-4' : 'bottom-4'
 
   return (
     <div
+      ref={panelRef}
       className={`absolute left-4 right-4 ${positionClass} max-w-lg mx-auto z-20
                   bg-neutral-900/80 dark:bg-neutral-950/90 backdrop-blur-sm
                   rounded-lg shadow-xl border border-neutral-700/50 ${className}`}
