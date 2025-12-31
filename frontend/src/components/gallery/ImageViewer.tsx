@@ -314,11 +314,18 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
 
   return (
     <div className="relative w-full h-[calc(100vh-6.5rem)] min-h-[400px] bg-neutral-200 dark:bg-neutral-950 overflow-hidden">
-      {/* Edge fade vignette */}
+      {/* Edge fade vignette - light mode (dark edges) */}
       <div
-        className="absolute inset-0 pointer-events-none z-20"
+        className="absolute inset-0 pointer-events-none z-20 dark:hidden"
         style={{
-          boxShadow: 'inset 0 0 100px 20px rgba(0, 0, 0, 0.3)',
+          boxShadow: 'inset 0 0 100px 20px rgba(0, 0, 0, 0.09)',
+        }}
+      />
+      {/* Edge fade vignette - dark mode (light edges) */}
+      <div
+        className="absolute inset-0 pointer-events-none z-20 hidden dark:block"
+        style={{
+          boxShadow: 'inset 0 0 100px 20px rgba(255, 255, 255, 0.09)',
         }}
       />
 
