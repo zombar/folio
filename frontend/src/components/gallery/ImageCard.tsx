@@ -42,7 +42,12 @@ export default function ImageCard({ generation, onClick, onDelete, onSetCover, i
     <button
      onClick={(e) => {
       e.stopPropagation()
-      onDelete(e)
+      // Skip confirmation for pending/failed images
+      if (generation.status === 'pending' || generation.status === 'failed') {
+       onDelete(e)
+      } else if (confirm('Delete this image?')) {
+       onDelete(e)
+      }
      }}
      className="absolute top-1 right-1 z-10 w-6 h-6 flex items-center justify-center bg-black/60 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
      title="Delete"
