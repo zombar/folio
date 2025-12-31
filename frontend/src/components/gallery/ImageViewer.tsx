@@ -338,6 +338,7 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
               alt={generation.prompt}
               style={{ width: generation.width, height: generation.height }}
               draggable={false}
+              onLoad={() => viewportRef.current?.fitToContainer()}
             />
           </TransformViewport>
         ) : (

@@ -34,6 +34,7 @@ const useGridColors = () => {
 export interface TransformViewportHandle {
   clearMask: () => void
   getMaskBase64: () => string | null
+  fitToContainer: () => void
 }
 
 export interface TransformState {
@@ -411,7 +412,8 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
   useImperativeHandle(ref, () => ({
     clearMask,
     getMaskBase64,
-  }), [clearMask, getMaskBase64])
+    fitToContainer,
+  }), [clearMask, getMaskBase64, fitToContainer])
 
   const [containerDims, setContainerDims] = useState({ width: 0, height: 0 })
 
