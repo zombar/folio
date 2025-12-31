@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useLayoutEffect, useImperativeHandle, forwardRef } from 'react'
+import { useState, useRef, useCallback, useEffect, useLayoutEffect, useImperativeHandle, forwardRef, useMemo } from 'react'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ZoomInIcon from '@mui/icons-material/ZoomIn'
@@ -6,6 +6,27 @@ import ZoomOutIcon from '@mui/icons-material/ZoomOut'
 import FitScreenIcon from '@mui/icons-material/FitScreen'
 import { Icon } from './Icon'
 import { Tooltip } from './Tooltip'
+
+// Theme-aware grid colors
+const useGridColors = () => {
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    const checkDark = () => {
+      setIsDark(document.documentElement.classList.contains('dark'))
+    }
+    checkDark()
+    const observer = new MutationObserver(checkDark)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
+
+  return useMemo(() => ({
+    background: isDark ? 'rgb(23, 23, 23)' : 'rgb(245, 245, 245)',
+    majorLine: isDark ? 'rgb(64, 64, 64)' : 'rgb(212, 212, 212)',
+    minorLine: isDark ? 'rgb(38, 38, 38)' : 'rgb(229, 229, 229)',
+  }), [isDark])
+}
 
 export interface TransformViewportHandle {
   clearMask: () => void
@@ -65,6 +86,7 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
   transform: controlledTransform,
   onTransformChange,
 }, ref) {
+  const gridColors = useGridColors()
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const maskCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -461,12 +483,12 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
       className={`relative overflow-hidden ${className}`}
       style={{
         cursor: maskMode ? 'crosshair' : (isDragging ? 'grabbing' : 'grab'),
-        backgroundColor: 'rgb(245, 245, 245)',
+        backgroundColor: gridColors.background,
         backgroundImage: `
-          linear-gradient(rgb(212, 212, 212) 1px, transparent 1px),
-          linear-gradient(90deg, rgb(212, 212, 212) 1px, transparent 1px),
-          linear-gradient(rgb(229, 229, 229) 1px, transparent 1px),
-          linear-gradient(90deg, rgb(229, 229, 229) 1px, transparent 1px)
+          linear-gradient(${gridColors.majorLine} 1px, transparent 1px),
+          linear-gradient(90deg, ${gridColors.majorLine} 1px, transparent 1px),
+          linear-gradient(${gridColors.minorLine} 1px, transparent 1px),
+          linear-gradient(90deg, ${gridColors.minorLine} 1px, transparent 1px)
         `,
         backgroundSize: `${majorGridSize}px ${majorGridSize}px, ${majorGridSize}px ${majorGridSize}px, ${minorGridSize}px ${minorGridSize}px, ${minorGridSize}px ${minorGridSize}px`,
         backgroundPosition: `${majorGridOffsetX}px ${majorGridOffsetY}px, ${majorGridOffsetX}px ${majorGridOffsetY}px, ${minorGridOffsetX}px ${minorGridOffsetY}px, ${minorGridOffsetX}px ${minorGridOffsetY}px`,
@@ -537,32 +559,32 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
       )}
 
       {showZoomControls && (
-        <div className="absolute top-4 left-4 flex items-center gap-1 bg-neutral-900/60 backdrop-blur-sm rounded-lg p-1.5 z-10">
+        <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-neutral-900/80 backdrop-blur-sm p-2 z-10">
           <Tooltip content="Fit to view" position="bottom">
             <button
               onClick={(e) => { e.stopPropagation(); fitToContainer() }}
-              className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded transition"
+              className="p-2 text-white/70 hover:text-white hover:bg-white/10 transition"
             >
-              <Icon icon={FitScreenIcon} size="sm" />
+              <Icon icon={FitScreenIcon} size="md" />
             </button>
           </Tooltip>
           <Tooltip content="Zoom out" position="bottom">
             <button
               onClick={(e) => { e.stopPropagation(); zoomOut() }}
-              className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded transition"
+              className="p-2 text-white/70 hover:text-white hover:bg-white/10 transition"
             >
-              <Icon icon={ZoomOutIcon} size="sm" />
+              <Icon icon={ZoomOutIcon} size="md" />
             </button>
           </Tooltip>
-          <span className="text-white/70 text-xs px-1 min-w-[3rem] text-center">
+          <span className="text-white/70 text-sm px-2 min-w-[3.5rem] text-center">
             {Math.round(scale * 100)}%
           </span>
           <Tooltip content="Zoom in" position="bottom">
             <button
               onClick={(e) => { e.stopPropagation(); zoomIn() }}
-              className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded transition"
+              className="p-2 text-white/70 hover:text-white hover:bg-white/10 transition"
             >
-              <Icon icon={ZoomInIcon} size="sm" />
+              <Icon icon={ZoomInIcon} size="md" />
             </button>
           </Tooltip>
         </div>

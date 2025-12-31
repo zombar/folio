@@ -200,7 +200,7 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
 
   if (isLoading || !generation) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/95">
+      <div className="relative w-full h-[calc(100vh-12rem)] min-h-[400px] bg-neutral-100 dark:bg-neutral-900 rounded-lg flex items-center justify-center">
         <Spinner />
       </div>
     )
@@ -225,6 +225,13 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
     }
 
     return [
+      {
+        id: 'close',
+        icon: CloseIcon,
+        tooltip: 'Close',
+        onClick: onClose,
+      },
+      { type: 'divider' as const },
       {
         id: 'inpaint',
         icon: AutoFixHighIcon,
@@ -273,18 +280,9 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex bg-neutral-900/95" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        className="absolute top-4 left-4 p-2 bg-neutral-800/50 hover:bg-neutral-800 text-neutral-400 hover:text-white rounded-full z-20"
-        aria-label="Close"
-      >
-        <CloseIcon />
-      </button>
-
+    <div className="relative w-full h-[calc(100vh-12rem)] min-h-[400px] bg-neutral-100 dark:bg-neutral-900 rounded-lg overflow-hidden">
       {/* Main viewport */}
-      <div className="flex-1">
+      <div className="w-full h-full">
         {isCompleted ? (
           <TransformViewport
             ref={viewportRef}
@@ -515,3 +513,5 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
     </div>
   )
 }
+
+export { ImageViewer }

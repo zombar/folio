@@ -60,8 +60,8 @@ export function ImageToolbar({ items, position = 'top-right', className = '' }: 
 
   return (
     <div
-      className={`absolute ${positionClasses[position]} flex items-center gap-1
-                  bg-neutral-900/60 backdrop-blur-sm rounded-lg p-1.5 z-10 ${className}`}
+      className={`absolute ${positionClasses[position]} flex items-center gap-1.5
+                  bg-neutral-900/80 backdrop-blur-sm p-2 z-10 ${className}`}
     >
       {items.map((item, index) => {
         if (isDivider(item)) {
@@ -110,12 +110,12 @@ export function ImageToolbar({ items, position = 'top-right', className = '' }: 
             <button
               onClick={button.onClick}
               disabled={button.disabled}
-              className={`p-1.5 rounded transition
+              className={`p-2 transition
                 ${button.active ? 'bg-white/20 text-white' : variantClasses[button.variant || 'default']}
                 disabled:opacity-50 disabled:cursor-not-allowed`}
               data-testid={button.testId}
             >
-              <Icon icon={button.icon} size="sm" />
+              <Icon icon={button.icon} size="md" />
             </button>
           </Tooltip>
         )

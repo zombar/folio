@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import MainLayout from './components/layout/MainLayout'
 import HomePage from './pages/HomePage'
 import PortfolioPage from './pages/PortfolioPage'
@@ -6,26 +6,8 @@ import GeneratePage from './pages/GeneratePage'
 import WorkflowsPage from './pages/WorkflowsPage'
 import HistoryPage from './pages/HistoryPage'
 import { CreatePortfolioModal } from './components/portfolio'
-import { ImageViewer } from './components/gallery'
-import { useUIStore } from './stores/uiStore'
 
 function App() {
- const location = useLocation()
- const navigate = useNavigate()
- const imageDetailId = useUIStore((state) => state.imageDetailId)
- const closeImageDetail = useUIStore((state) => state.closeImageDetail)
-
- // Check if we're on an image URL route
- const imageUrlMatch = location.pathname.match(/^\/portfolio\/([^/]+)\/image\//)
-
- const handleCloseImageDetail = () => {
-  closeImageDetail()
-  // If on image URL, navigate back to portfolio
-  if (imageUrlMatch) {
-   navigate(`/portfolio/${imageUrlMatch[1]}`, { replace: true })
-  }
- }
-
  return (
   <MainLayout>
    <Routes>
@@ -39,11 +21,6 @@ function App() {
 
    {/* Global modals */}
    <CreatePortfolioModal />
-
-   {/* Image viewer modal */}
-   {imageDetailId && (
-    <ImageViewer generationId={imageDetailId} onClose={handleCloseImageDetail} />
-   )}
   </MainLayout>
  )
 }

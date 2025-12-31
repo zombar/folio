@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { usePortfolio, useDeletePortfolio, useUpdatePortfolio } from '../hooks/usePortfolios'
 import { useGenerations, useDeleteGeneration } from '../hooks/useGenerations'
 import { useUIStore } from '../stores/uiStore'
-import { ImageGrid } from '../components/gallery'
+import { ImageGrid, ImageViewer } from '../components/gallery'
 import { Button, Spinner } from '../components/ui'
 
 export default function PortfolioPage() {
@@ -14,15 +14,22 @@ export default function PortfolioPage() {
  const deletePortfolio = useDeletePortfolio()
  const deleteGeneration = useDeleteGeneration()
  const updatePortfolio = useUpdatePortfolio()
+ const imageDetailId = useUIStore((state) => state.imageDetailId)
  const openImageDetail = useUIStore((state) => state.openImageDetail)
+ const closeImageDetail = useUIStore((state) => state.closeImageDetail)
  const [isEditing, setIsEditing] = useState(false)
 
- // Handle direct image link - open modal when imageId is in URL
+ // Handle direct image link - open viewer when imageId is in URL
  useEffect(() => {
   if (imageId) {
    openImageDetail(imageId)
   }
  }, [imageId, openImageDetail])
+
+ const handleCloseImageViewer = () => {
+  closeImageDetail()
+  navigate(`/portfolio/${id}`, { replace: true })
+ }
 
  // Custom handler for opening image - navigates to image URL
  const handleImageClick = (generationId: string) => {
@@ -145,7 +152,9 @@ export default function PortfolioPage() {
     </div>
    </div>
 
-   {generationsLoading ? (
+   {imageDetailId ? (
+    <ImageViewer generationId={imageDetailId} onClose={handleCloseImageViewer} />
+   ) : generationsLoading ? (
     <div className="flex items-center justify-center h-64">
      <Spinner size="lg" className="text-neutral-500" />
     </div>
