@@ -116,6 +116,7 @@ export const useGenerationStore = create<GenerationState>()(
         cfgScale: state.cfgScale,
         sampler: state.sampler,
         quantity: state.quantity,
+        modelFilename: state.modelFilename,
       }),
     }
   )
