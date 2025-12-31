@@ -141,13 +141,13 @@ TXT2IMG_SDXL_LORA = {
 BUILTIN_WORKFLOWS = [
     {
         "name": "SDXL Text to Image",
-        "description": "Basic text-to-image generation using SDXL checkpoints. Supports changing the checkpoint model.",
+        "description": "Basic text-to-image generation using SDXL checkpoints.",
         "category": "txt2img",
         "workflow_json": TXT2IMG_SDXL,
     },
     {
         "name": "SDXL Text to Image + LoRA",
-        "description": "Text-to-image with LoRA support. Apply style LoRAs or character LoRAs to your generations.",
+        "description": "Text-to-image with LoRA support for styles and characters.",
         "category": "txt2img",
         "workflow_json": TXT2IMG_SDXL_LORA,
     },
@@ -165,7 +165,7 @@ def seed_builtin_workflows(db: Session) -> int:
         # Check if workflow already exists by name
         existing = db.query(WorkflowTemplate).filter(
             WorkflowTemplate.name == workflow_data["name"],
-            WorkflowTemplate.is_builtin == True
+            WorkflowTemplate.is_builtin.is_(True)
         ).first()
 
         if not existing:

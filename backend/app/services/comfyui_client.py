@@ -1,9 +1,7 @@
 import httpx
 import asyncio
-import json
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
-from pathlib import Path
 
 from app.config import settings
 
@@ -112,7 +110,9 @@ class ComfyUIClient:
                     })
         return images
 
-    async def get_image(self, filename: str, subfolder: str = "", folder_type: str = "output") -> bytes:
+    async def get_image(
+        self, filename: str, subfolder: str = "", folder_type: str = "output"
+    ) -> bytes:
         """Download an image from ComfyUI."""
         client = await self._get_client()
         params = {
