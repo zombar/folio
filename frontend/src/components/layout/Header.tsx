@@ -33,15 +33,7 @@ export default function Header() {
 
    <div className="flex-1" />
 
-   <div className="flex items-center gap-2">
-    <Link
-     to="/generate"
-     className="border border-neutral-800 dark:border-neutral-200 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-800 hover:text-white dark:hover:bg-neutral-200 dark:hover:text-neutral-900 px-4 py-2 font-medium transition-colors rounded-sm"
-    >
-     Generate
-    </Link>
-    <ThemeToggle />
-   </div>
+   <ThemeToggle />
   </header>
  )
 }
