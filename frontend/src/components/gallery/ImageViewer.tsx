@@ -10,7 +10,7 @@ import OpenInFullIcon from '@mui/icons-material/OpenInFull'
 import ClearIcon from '@mui/icons-material/Clear'
 import AutorenewIcon from '@mui/icons-material/Autorenew'
 import { TransformViewport, ImageToolbar, ViewportPanel, Input, Spinner } from '../ui'
-import type { TransformViewportHandle, TransformState } from '../ui'
+import type { TransformViewportHandle } from '../ui'
 import { useGeneration, useDeleteGeneration, useCreateGeneration } from '../../hooks/useGenerations'
 import { useGenerationStore } from '../../stores/generationStore'
 import type { GenerationParams } from '../../types'
@@ -37,7 +37,6 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
   const loadFromGeneration = useGenerationStore((state) => state.loadFromGeneration)
 
   const viewportRef = useRef<TransformViewportHandle>(null)
-  const [transform, setTransform] = useState<TransformState>({ scale: 1, translateX: 0, translateY: 0 })
   const [activePanel, setActivePanel] = useState<ActivePanel>('none')
 
   // Inpaint state
@@ -293,8 +292,6 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
             maskMode={activePanel === 'inpaint'}
             brushSize={brushSize}
             onMaskChange={setHasMask}
-            transform={transform}
-            onTransformChange={setTransform}
             toolbar={<ImageToolbar items={getToolbarItems()} position="top-right" />}
           >
             <img

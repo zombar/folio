@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useLayoutEffect, useImperativeHandle, forwardRef, useMemo } from 'react'
+import { useState, useRef, useCallback, useEffect, useImperativeHandle, forwardRef, useMemo } from 'react'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ZoomInIcon from '@mui/icons-material/ZoomIn'
@@ -161,14 +161,6 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
   }, [contentWidth, contentHeight, updateTransform])
 
   const initialFitDone = useRef(false)
-
-  useLayoutEffect(() => {
-    if (isControlled || initialFitDone.current) {
-      return
-    }
-    initialFitDone.current = true
-    fitToContainer()
-  }, [fitToContainer, isControlled])
 
   const zoomAtPoint = useCallback((newScale: number, clientX: number, clientY: number) => {
     const container = containerRef.current
@@ -428,14 +420,28 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
     if (!container) return
 
     const updateDims = () => {
-      setContainerDims({ width: container.clientWidth, height: container.clientHeight })
+      const width = container.clientWidth
+      const height = container.clientHeight
+      setContainerDims({ width, height })
+
+      // Perform initial fit when dimensions become available
+      if (!isControlled && !initialFitDone.current && width > 0 && height > 0) {
+        initialFitDone.current = true
+        // Use setTimeout to ensure layout is complete
+        setTimeout(() => {
+          const scaleX = width / contentWidth
+          const scaleY = height / contentHeight
+          const fitScale = Math.min(scaleX, scaleY, 1)
+          updateTransform(fitScale, 0, 0)
+        }, 0)
+      }
     }
 
     updateDims()
     const observer = new ResizeObserver(updateDims)
     observer.observe(container)
     return () => observer.disconnect()
-  }, [])
+  }, [isControlled, contentWidth, contentHeight, updateTransform])
 
   const scaleRef = useRef(scale)
   const minScaleRef = useRef(minScale)
