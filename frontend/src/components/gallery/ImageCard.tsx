@@ -15,7 +15,7 @@ export default function ImageCard({ generation, onClick, onDelete, onSetCover, i
  return (
   <div
    onClick={onClick}
-   className="relative aspect-square bg-neutral-100 dark:bg-neutral-800 overflow-hidden group cursor-pointer hover:ring-2 hover:ring-neutral-400 dark:hover:ring-neutral-500 transition-all"
+   className="relative aspect-square bg-neutral-100 dark:bg-neutral-800 overflow-hidden group cursor-pointer hover:ring-1 hover:ring-neutral-400 dark:hover:ring-neutral-500 transition-all"
   >
    {/* Star/Cover button */}
    {onSetCover && (

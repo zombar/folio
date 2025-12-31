@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useUIStore } from '../../stores/uiStore'
 import { useGenerations } from '../../hooks/useGenerations'
 import { ThemeToggle, QueueIndicator } from '../ui'
@@ -6,18 +6,9 @@ import { ThemeToggle, QueueIndicator } from '../ui'
 export default function Header() {
  const toggleSidebar = useUIStore((state) => state.toggleSidebar)
  const { data: generations } = useGenerations()
- const location = useLocation()
- const navigate = useNavigate()
 
  const pendingCount = generations?.filter((g) => g.status === 'pending').length ?? 0
  const processingCount = generations?.filter((g) => g.status === 'processing').length ?? 0
-
- // Check if we're in a portfolio view
- const isInPortfolio = location.pathname.startsWith('/portfolio/')
-
- const handleBack = () => {
-   navigate('/')
- }
 
  return (
   <header className="h-14 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 flex items-center px-4 shrink-0">
@@ -44,28 +35,6 @@ export default function Header() {
    <Link to="/" className="text-2xl font-pacifico text-neutral-800 dark:text-neutral-100 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors">
     Folio
    </Link>
-
-   {isInPortfolio && (
-    <button
-     onClick={handleBack}
-     className="ml-4 p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300"
-     aria-label="Back to home"
-    >
-     <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-     >
-      <path
-       strokeLinecap="round"
-       strokeLinejoin="round"
-       strokeWidth={2}
-       d="M10 19l-7-7m0 0l7-7m-7 7h18"
-      />
-     </svg>
-    </button>
-   )}
 
    <div className="flex-1" />
 
