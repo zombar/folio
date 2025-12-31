@@ -22,10 +22,10 @@ const useGridColors = () => {
   }, [])
 
   return useMemo(() => ({
-    // neutral-800 for dark, neutral-200 for light
-    background: isDark ? 'rgb(38, 38, 38)' : 'rgb(229, 229, 229)',
-    majorLine: isDark ? 'rgb(64, 64, 64)' : 'rgb(163, 163, 163)',
-    minorLine: isDark ? 'rgb(51, 51, 51)' : 'rgb(212, 212, 212)',
+    // Darker in dark mode, grid lines barely perceptible
+    background: isDark ? 'rgb(26, 26, 26)' : 'rgb(229, 229, 229)',
+    majorLine: isDark ? 'rgb(35, 35, 35)' : 'rgb(218, 218, 218)',
+    minorLine: isDark ? 'rgb(30, 30, 30)' : 'rgb(222, 222, 222)',
   }), [isDark])
 }
 
