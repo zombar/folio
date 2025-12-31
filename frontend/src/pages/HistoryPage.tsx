@@ -6,10 +6,10 @@ import type { Generation } from '../types'
 
 function StatusBadge({ status }: { status: Generation['status'] }) {
  const styles = {
-  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-  processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-  completed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  failed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  pending: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-400',
+  processing: 'bg-neutral-200 text-neutral-700 dark:bg-neutral-600 dark:text-neutral-200',
+  completed: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-400',
+  failed: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-400',
  }
 
  return (
@@ -42,10 +42,17 @@ export default function HistoryPage() {
   )
  }
 
- // Sort by created_at descending (most recent first)
- const sortedGenerations = [...(generations ?? [])].sort(
-  (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
- )
+ // Sort: processing first, then by created_at descending (most recent first)
+ const sortedGenerations = [...(generations ?? [])].sort((a, b) => {
+  // Processing items come first
+  if (a.status === 'processing' && b.status !== 'processing') return -1
+  if (b.status === 'processing' && a.status !== 'processing') return 1
+  // Then pending items
+  if (a.status === 'pending' && b.status !== 'pending' && b.status !== 'processing') return -1
+  if (b.status === 'pending' && a.status !== 'pending' && a.status !== 'processing') return 1
+  // Then sort by created_at descending
+  return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+ })
 
  return (
   <div>
@@ -93,7 +100,7 @@ export default function HistoryPage() {
          </Link>
         ) : generation.status === 'processing' ? (
          <div className="w-full h-full flex items-center justify-center">
-          <Spinner size="sm" className="text-blue-500" />
+          <Spinner size="sm" className="text-neutral-500" />
          </div>
         ) : generation.status === 'pending' ? (
          <div className="w-full h-full flex items-center justify-center">
@@ -103,7 +110,7 @@ export default function HistoryPage() {
          </div>
         ) : (
          <div className="w-full h-full flex items-center justify-center">
-          <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
          </div>
