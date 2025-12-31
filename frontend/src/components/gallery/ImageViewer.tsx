@@ -318,6 +318,7 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
       <div className="w-full h-full">
         {isCompleted ? (
           <TransformViewport
+            key={generation.id}
             ref={viewportRef}
             contentWidth={generation.width}
             contentHeight={generation.height}
