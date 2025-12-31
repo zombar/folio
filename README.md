@@ -2,6 +2,17 @@
 
 A local AI image generator with portfolio organization. Uses ComfyUI for SDXL image generation with a React frontend and FastAPI backend.
 
+## Features
+
+- **Portfolio organization** - Group generated images into collections
+- **Text-to-image generation** - SDXL workflows with configurable parameters
+- **Inpainting** - Paint over areas to regenerate with marching ants mask visualization
+- **Outpainting** - Extend images in any direction
+- **Upscaling** - Multiple upscaler models (RealESRGAN, UltraSharp)
+- **Image variations** - Iterate on existing images with adjusted parameters
+- **Greyscale interface** - Neutral UI that doesn't compete with generated images
+- **Queue management** - Priority-based job queue with preemption
+
 ## Requirements
 
 - Docker with Compose
