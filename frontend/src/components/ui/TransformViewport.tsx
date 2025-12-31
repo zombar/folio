@@ -367,11 +367,11 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
                 coloredData.data[i + 3] = 255 // A
               }
             } else {
-              // Inner whiteout fill with soft shading
-              coloredData.data[i] = 255     // R (white)
-              coloredData.data[i + 1] = 255 // G
-              coloredData.data[i + 2] = 255 // B
-              coloredData.data[i + 3] = 140 // A (semi-transparent)
+              // Subtle grey fill - will be inverted via CSS mix-blend-mode
+              coloredData.data[i] = 128     // R (mid-grey)
+              coloredData.data[i + 1] = 128 // G
+              coloredData.data[i + 2] = 128 // B
+              coloredData.data[i + 3] = 80  // A (subtle)
             }
           }
         }
@@ -586,7 +586,7 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
                 width={contentWidth}
                 height={contentHeight}
                 className="absolute inset-0 pointer-events-none"
-                style={{ opacity: 0.6 }}
+                style={{ mixBlendMode: 'difference' }}
               />
             </>
           )}

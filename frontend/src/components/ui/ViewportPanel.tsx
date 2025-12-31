@@ -1,5 +1,7 @@
+import { useState, useCallback, useEffect } from 'react'
 import type { SvgIconComponent } from '@mui/icons-material'
 import CloseIcon from '@mui/icons-material/Close'
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import { Icon } from './Icon'
 import Button from './Button'
 
@@ -30,6 +32,38 @@ export function ViewportPanel({
   onClose,
   className = '',
 }: ViewportPanelProps) {
+  const [offset, setOffset] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+    setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y })
+  }, [offset])
+
+  useEffect(() => {
+    if (!isDragging) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      setOffset({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      })
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging, dragStart])
+
   const positionClass = position === 'top' ? 'top-4' : 'bottom-4'
 
   return (
@@ -37,15 +71,21 @@ export function ViewportPanel({
       className={`absolute left-4 right-4 ${positionClass} max-w-lg mx-auto z-20
                   bg-neutral-900/80 dark:bg-neutral-950/90 backdrop-blur-sm
                   rounded-lg shadow-xl border border-neutral-700/50 ${className}`}
+      style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-700/50">
+      {/* Header - draggable */}
+      <div
+        className="flex items-center justify-between px-4 py-3 border-b border-neutral-700/50 cursor-grab active:cursor-grabbing select-none"
+        onMouseDown={handleMouseDown}
+      >
         <div className="flex items-center gap-2 text-white">
+          <Icon icon={DragIndicatorIcon} size="sm" className="text-neutral-500" />
           {TitleIcon && <Icon icon={TitleIcon} size="sm" />}
           <span className="font-medium text-sm">{title}</span>
         </div>
         <button
           onClick={onClose}
+          onMouseDown={(e) => e.stopPropagation()}
           className="p-1 text-neutral-400 hover:text-white hover:bg-white/10 rounded transition"
           aria-label="Close panel"
         >
