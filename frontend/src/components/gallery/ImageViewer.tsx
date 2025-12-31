@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import CloseIcon from '@mui/icons-material/Close'
@@ -11,7 +11,7 @@ import ClearIcon from '@mui/icons-material/Clear'
 import AutorenewIcon from '@mui/icons-material/Autorenew'
 import { TransformViewport, ImageToolbar, ViewportPanel, Input, Spinner } from '../ui'
 import type { TransformViewportHandle } from '../ui'
-import { useGeneration, useDeleteGeneration, useCreateGeneration } from '../../hooks/useGenerations'
+import { useGeneration, useGenerations, useDeleteGeneration, useCreateGeneration } from '../../hooks/useGenerations'
 import { useGenerationStore } from '../../stores/generationStore'
 import type { GenerationParams } from '../../types'
 
@@ -35,6 +35,31 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
   const deleteGeneration = useDeleteGeneration()
   const createGeneration = useCreateGeneration()
   const loadFromGeneration = useGenerationStore((state) => state.loadFromGeneration)
+
+  // Get all generations for navigation
+  const { data: allGenerations } = useGenerations(generation?.portfolio_id)
+
+  // Calculate navigation indices - only show completed images
+  const completedGenerations = useMemo(
+    () => allGenerations?.filter(g => g.status === 'completed') || [],
+    [allGenerations]
+  )
+  const currentIndex = completedGenerations.findIndex(g => g.id === generationId)
+  const totalImages = completedGenerations.length
+
+  const handlePrev = useCallback(() => {
+    if (currentIndex > 0 && generation) {
+      const prevGeneration = completedGenerations[currentIndex - 1]
+      navigate(`/portfolio/${generation.portfolio_id}/image/${prevGeneration.id}`, { replace: true })
+    }
+  }, [currentIndex, completedGenerations, generation, navigate])
+
+  const handleNext = useCallback(() => {
+    if (currentIndex < totalImages - 1 && generation) {
+      const nextGeneration = completedGenerations[currentIndex + 1]
+      navigate(`/portfolio/${generation.portfolio_id}/image/${nextGeneration.id}`, { replace: true })
+    }
+  }, [currentIndex, totalImages, completedGenerations, generation, navigate])
 
   const viewportRef = useRef<TransformViewportHandle>(null)
   const [activePanel, setActivePanel] = useState<ActivePanel>('none')
@@ -181,9 +206,14 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
     }
   }, [generation, outpaintPrompt, outpaintLeft, outpaintRight, outpaintTop, outpaintBottom, createGeneration, queryClient])
 
-  // Close panel on Escape
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't navigate if typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return
+      }
+
       if (e.key === 'Escape') {
         if (activePanel !== 'none') {
           setActivePanel('none')
@@ -191,11 +221,15 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
         } else {
           onClose()
         }
+      } else if (e.key === 'ArrowLeft') {
+        handlePrev()
+      } else if (e.key === 'ArrowRight') {
+        handleNext()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [activePanel, onClose, handleClearMask])
+  }, [activePanel, onClose, handleClearMask, handlePrev, handleNext])
 
   if (isLoading || !generation) {
     return (
@@ -289,6 +323,11 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
             contentHeight={generation.height}
             className="w-full h-full"
             showZoomControls
+            showNavigation={totalImages > 1}
+            onPrev={handlePrev}
+            onNext={handleNext}
+            currentIndex={currentIndex}
+            totalItems={totalImages}
             maskMode={activePanel === 'inpaint'}
             brushSize={brushSize}
             onMaskChange={setHasMask}
