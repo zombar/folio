@@ -11,31 +11,31 @@ import { useUIStore } from './stores/uiStore'
 import { useGenerations } from './hooks/useGenerations'
 
 function App() {
-  const imageDetailId = useUIStore((state) => state.imageDetailId)
-  const closeImageDetail = useUIStore((state) => state.closeImageDetail)
-  const { data: generations } = useGenerations()
+ const imageDetailId = useUIStore((state) => state.imageDetailId)
+ const closeImageDetail = useUIStore((state) => state.closeImageDetail)
+ const { data: generations } = useGenerations()
 
-  return (
-    <MainLayout>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/portfolio/:id" element={<PortfolioPage />} />
-        <Route path="/generate" element={<GeneratePage />} />
-        <Route path="/workflows" element={<WorkflowsPage />} />
-      </Routes>
+ return (
+  <MainLayout>
+   <Routes>
+    <Route path="/" element={<HomePage />} />
+    <Route path="/portfolio/:id" element={<PortfolioPage />} />
+    <Route path="/generate" element={<GeneratePage />} />
+    <Route path="/workflows" element={<WorkflowsPage />} />
+   </Routes>
 
-      {/* Global modals */}
-      <CreatePortfolioModal />
+   {/* Global modals */}
+   <CreatePortfolioModal />
 
-      {/* Image detail modal */}
-      {imageDetailId && (
-        <ImageDetail generationId={imageDetailId} onClose={closeImageDetail} />
-      )}
+   {/* Image detail modal */}
+   {imageDetailId && (
+    <ImageDetail generationId={imageDetailId} onClose={closeImageDetail} />
+   )}
 
-      {/* Generation queue */}
-      {generations && <GenerationQueue generations={generations} />}
-    </MainLayout>
-  )
+   {/* Generation queue */}
+   {generations && <GenerationQueue generations={generations} />}
+  </MainLayout>
+ )
 }
 
 export default App

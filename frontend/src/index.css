@@ -2,21 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom scrollbar */
+/* Smooth theme transitions */
+* {
+  transition-property: background-color, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: ease-in-out;
+}
+
+/* Custom scrollbar - Light mode */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #e5e5e5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: #a3a3a3;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #737373;
+}
+
+/* Custom scrollbar - Dark mode */
+.dark ::-webkit-scrollbar-track {
+  background: #262626;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #525252;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #737373;
 }

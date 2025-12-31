@@ -4,17 +4,23 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        pacifico: ['Pacifico', 'cursive'],
+      },
       colors: {
-        // Custom color palette
-        surface: {
-          DEFAULT: '#1e293b', // slate-800
-          dark: '#0f172a',    // slate-900
+        // Pure grayscale palette for artist's easel aesthetic
+        ink: {
+          DEFAULT: '#262626', // neutral-800
+          dark: '#171717',    // neutral-900
+          light: '#404040',   // neutral-700
         },
-        accent: {
-          DEFAULT: '#8b5cf6', // violet-500
-          dark: '#7c3aed',    // violet-600
+        canvas: {
+          DEFAULT: '#f5f5f5', // neutral-100
+          light: '#fafafa',   // neutral-50
+          dark: '#e5e5e5',    // neutral-200
         },
       },
     },
