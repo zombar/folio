@@ -8,9 +8,12 @@ export interface Portfolio {
   image_count: number
 }
 
+export type GenerationType = 'txt2img' | 'inpaint' | 'upscale' | 'outpaint'
+
 export interface Generation {
   id: string
   portfolio_id: string
+  generation_type: GenerationType
   prompt: string
   negative_prompt: string | null
   width: number
@@ -25,9 +28,25 @@ export interface Generation {
   image_path: string | null
   thumbnail_path: string | null
   parent_id: string | null
+  source_generation_id: string | null
   workflow_id: string | null
   model_filename: string | null
   lora_filename: string | null
+  // Inpainting fields
+  mask_path: string | null
+  denoising_strength: number | null
+  grow_mask_by: number | null
+  // Upscaling fields
+  upscale_factor: number | null
+  upscale_model: string | null
+  sharpen_amount: number | null
+  // Outpainting fields
+  outpaint_left: number | null
+  outpaint_right: number | null
+  outpaint_top: number | null
+  outpaint_bottom: number | null
+  outpaint_feather: number | null
+  // Timestamps
   created_at: string
   completed_at: string | null
 }
@@ -46,6 +65,23 @@ export interface GenerationParams {
   model_filename?: string
   lora_filename?: string
   quantity?: number
+  // Generation type
+  generation_type?: GenerationType
+  source_generation_id?: string
+  // Inpainting fields
+  mask_image_base64?: string
+  denoising_strength?: number
+  grow_mask_by?: number
+  // Upscaling fields
+  upscale_factor?: number
+  upscale_model?: string
+  sharpen_amount?: number
+  // Outpainting fields
+  outpaint_left?: number
+  outpaint_right?: number
+  outpaint_top?: number
+  outpaint_bottom?: number
+  outpaint_feather?: number
 }
 
 export interface ModelInfo {

@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -6,7 +7,7 @@ from app.config import settings
 from app.database import create_tables, SessionLocal
 from app.api import portfolios, generations, images, events, health, models, workflows
 from app.services.builtin_workflows import seed_builtin_workflows
-from app.services.job_queue import job_queue
+from app.services.job_queue import init_job_queue
 from app.services.generation_service import process_generation_job
 
 
@@ -23,7 +24,9 @@ async def lifespan(app: FastAPI):
     finally:
         db.close()
 
-    # Start job queue worker
+    # Initialize and start job queue worker
+    storage_path = Path(settings.storage_path)
+    job_queue = init_job_queue(storage_path)
     job_queue.set_processor(process_generation_job)
     await job_queue.start_worker()
 

@@ -6,7 +6,7 @@ import GeneratePage from './pages/GeneratePage'
 import WorkflowsPage from './pages/WorkflowsPage'
 import HistoryPage from './pages/HistoryPage'
 import { CreatePortfolioModal } from './components/portfolio'
-import { ImageDetail } from './components/gallery'
+import { ImageViewer } from './components/gallery'
 import { useUIStore } from './stores/uiStore'
 
 function App() {
@@ -40,9 +40,9 @@ function App() {
    {/* Global modals */}
    <CreatePortfolioModal />
 
-   {/* Image detail modal */}
+   {/* Image viewer modal */}
    {imageDetailId && (
-    <ImageDetail generationId={imageDetailId} onClose={handleCloseImageDetail} />
+    <ImageViewer generationId={imageDetailId} onClose={handleCloseImageDetail} />
    )}
   </MainLayout>
  )

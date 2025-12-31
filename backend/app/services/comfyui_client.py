@@ -137,6 +137,30 @@ class ComfyUIClient:
         response.raise_for_status()
         return response.json()
 
+    async def upload_image(self, image_data: bytes, filename: str) -> str:
+        """Upload an image to ComfyUI input folder. Returns the filename to use in workflows."""
+        import mimetypes
+
+        content_type = mimetypes.guess_type(filename)[0] or "image/png"
+        files = {"image": (filename, image_data, content_type)}
+
+        client = await self._get_client()
+        response = await client.post(f"{self.base_url}/upload/image", files=files)
+        response.raise_for_status()
+        result = response.json()
+        # Returns {"name": "filename.png", "subfolder": "", "type": "input"}
+        return result["name"]
+
+    async def interrupt(self) -> bool:
+        """Interrupt the currently running job. Returns True if successful."""
+        try:
+            client = await self._get_client()
+            response = await client.post(f"{self.base_url}/interrupt")
+            response.raise_for_status()
+            return True
+        except Exception:
+            return False
+
 
 # Global client instance
 comfyui_client = ComfyUIClient()
