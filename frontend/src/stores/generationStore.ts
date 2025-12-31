@@ -84,7 +84,12 @@ export const useGenerationStore = create<GenerationState>()(
         quantity: 1,
         parentId: generation.id,
       }),
-      reset: () => set(initialState),
+      reset: () => set({
+        prompt: '',
+        negativePrompt: '',
+        seed: null,
+        parentId: null,
+      }),
 
       getParams: (portfolioId: string): GenerationParams => {
         const state = get()

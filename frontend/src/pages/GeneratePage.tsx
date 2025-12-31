@@ -19,7 +19,6 @@ export default function GeneratePage() {
 
  const prompt = useGenerationStore((state) => state.prompt)
  const getParams = useGenerationStore((state) => state.getParams)
- const reset = useGenerationStore((state) => state.reset)
  const workflowId = useGenerationStore((state) => state.workflowId)
  const modelFilename = useGenerationStore((state) => state.modelFilename)
  const loraFilename = useGenerationStore((state) => state.loraFilename)
@@ -53,7 +52,6 @@ export default function GeneratePage() {
 
   try {
    await createGeneration.mutateAsync(getParams(selectedPortfolio))
-   reset()
    navigate(`/portfolio/${selectedPortfolio}`)
   } catch (error) {
    console.error('Failed to create generation:', error)
@@ -66,9 +64,9 @@ export default function GeneratePage() {
     <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Generate Image</h1>
     <button
      type="button"
-     onClick={reset}
+     onClick={() => navigate(-1)}
      className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 rounded transition-colors"
-     title="Clear form"
+     title="Go back"
     >
      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
