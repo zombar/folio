@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import { useGenerations } from '../hooks/useGenerations'
-import { usePortfolios } from '../hooks/usePortfolios'
 import { Spinner } from '../components/ui'
 import type { Generation } from '../types'
 
@@ -21,10 +20,6 @@ function StatusBadge({ status }: { status: Generation['status'] }) {
 
 export default function HistoryPage() {
  const { data: generations, isLoading: generationsLoading, error: generationsError } = useGenerations()
- const { data: portfolios } = usePortfolios()
-
- // Create a map of portfolio IDs to names for quick lookup
- const portfolioMap = new Map(portfolios?.map(p => [p.id, p.name]) ?? [])
 
  if (generationsLoading) {
   return (
@@ -136,14 +131,14 @@ export default function HistoryPage() {
          to={`/portfolio/${generation.portfolio_id}`}
          className="px-3 py-1.5 text-sm font-medium border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
         >
-         {portfolioMap.get(generation.portfolio_id) || 'Portfolio'}
+         Portfolio
         </Link>
         {generation.status === 'completed' && (
          <Link
           to={`/portfolio/${generation.portfolio_id}/image/${generation.id}`}
           className="px-3 py-1.5 text-sm font-medium border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
          >
-          View
+          Image
          </Link>
         )}
        </div>
