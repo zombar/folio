@@ -69,6 +69,10 @@ Services:
 ## Development
 
 ```bash
+# Initialize development environment (installs all dependencies + git hooks)
+make init
+
+# Or manually:
 # Backend
 cd backend
 python -m venv venv && source venv/bin/activate
@@ -79,6 +83,22 @@ pytest
 cd frontend
 npm install
 npm test
+```
+
+### Pre-commit Hooks
+
+The project uses Husky for pre-commit hooks. After running `make init`, every commit will automatically:
+
+1. Lint frontend code (ESLint)
+2. Lint backend code (ruff)
+3. Run frontend tests (Vitest)
+4. Run backend tests (pytest)
+
+Run linting and tests manually:
+
+```bash
+make lint      # Run all linters
+make test      # Run all tests
 ```
 
 ## Project Structure

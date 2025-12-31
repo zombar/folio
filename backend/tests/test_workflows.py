@@ -1,4 +1,3 @@
-import pytest
 
 
 SAMPLE_WORKFLOW = {
@@ -48,7 +47,7 @@ class TestWorkflowsAPI:
         assert data["name"] == "Test Workflow"
         assert data["description"] == "A test workflow"
         assert data["category"] == "txt2img"
-        assert data["is_builtin"] == False
+        assert not data["is_builtin"]
         assert "id" in data
         assert "workflow_json" in data
 

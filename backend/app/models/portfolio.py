@@ -17,7 +17,9 @@ class Portfolio(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationship
-    generations = relationship("Generation", back_populates="portfolio", cascade="all, delete-orphan")
+    generations = relationship(
+        "Generation", back_populates="portfolio", cascade="all, delete-orphan"
+    )
 
     def to_dict(self):
         return {

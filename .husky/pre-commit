@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+
+echo "Running pre-commit checks..."
+
+# Frontend linting
+echo "Linting frontend..."
+cd frontend && npm run lint
+if [ $? -ne 0 ]; then
+    echo "Frontend lint failed!"
+    exit 1
+fi
+cd ..
+
+# Backend linting
+echo "Linting backend..."
+cd backend && ruff check .
+if [ $? -ne 0 ]; then
+    echo "Backend lint failed!"
+    exit 1
+fi
+cd ..
+
+# Frontend tests
+echo "Running frontend tests..."
+cd frontend && npm test -- --run
+if [ $? -ne 0 ]; then
+    echo "Frontend tests failed!"
+    exit 1
+fi
+cd ..
+
+# Backend tests - try local pytest first, fall back to Docker
+echo "Running backend tests..."
+if python3 -c "import pytest" 2>/dev/null; then
+    cd backend && python3 -m pytest -v
+else
+    echo "(Using Docker for backend tests)"
+    docker compose exec -T backend python -m pytest -v
+fi
+if [ $? -ne 0 ]; then
+    echo "Backend tests failed!"
+    exit 1
+fi
+
+echo "All pre-commit checks passed!"

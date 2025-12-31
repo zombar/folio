@@ -54,7 +54,11 @@ async def delete_generation(
         raise HTTPException(status_code=404, detail="Generation not found")
 
 
-@router.post("/generations/{generation_id}/iterate", response_model=GenerationResponse, status_code=201)
+@router.post(
+    "/generations/{generation_id}/iterate",
+    response_model=GenerationResponse,
+    status_code=201,
+)
 async def iterate_generation(
     generation_id: str,
     service: GenerationService = Depends(get_generation_service),

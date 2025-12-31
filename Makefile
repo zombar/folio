@@ -1,7 +1,16 @@
-.PHONY: help build up up-gpu down restart logs ps clean test test-backend test-frontend shell-backend shell-frontend
+.PHONY: help init build up up-gpu down restart logs ps clean test test-backend test-frontend lint lint-backend lint-frontend shell-backend shell-frontend
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+init: ## Initialize development environment (install dependencies + git hooks)
+	@echo "Installing root dependencies (Husky)..."
+	npm install
+	@echo "Installing frontend dependencies..."
+	cd frontend && npm install
+	@echo "Installing backend dependencies (activate venv first)..."
+	cd backend && pip install -r requirements.txt
+	@echo "Development environment initialized!"
 
 build: ## Build all containers
 	docker compose build
@@ -37,10 +46,18 @@ clean: ## Stop and remove containers, volumes
 test: test-backend test-frontend ## Run all tests
 
 test-backend: ## Run backend tests
-	cd backend && python -m pytest -v
+	cd backend && python3 -m pytest -v
 
 test-frontend: ## Run frontend tests
 	cd frontend && npm test -- --run
+
+lint: lint-backend lint-frontend ## Run all linters
+
+lint-backend: ## Run backend linter
+	cd backend && ruff check .
+
+lint-frontend: ## Run frontend linter
+	cd frontend && npm run lint
 
 shell-backend: ## Open shell in backend container
 	docker compose exec backend /bin/bash

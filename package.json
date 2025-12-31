@@ -1,0 +1,16 @@
+{
+  "name": "folio",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:backend": "cd backend && ruff check .",
+    "test": "npm run test:frontend && npm run test:backend",
+    "test:frontend": "cd frontend && npm test -- --run",
+    "test:backend": "cd backend && python -m pytest -v"
+  },
+  "devDependencies": {
+    "husky": "^9.0.0"
+  }
+}
