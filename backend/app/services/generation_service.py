@@ -489,12 +489,12 @@ async def process_generation_job(job: Job):
                 with open(image_path, "wb") as f:
                     f.write(image_bytes)
 
-                # Create thumbnail
+                # Create thumbnail with LANCZOS resampling for quality
                 thumb_filename = f"{generation_id}_thumb.webp"
                 thumb_path = images_path / thumb_filename
                 img = Image.open(io.BytesIO(image_bytes))
-                img.thumbnail((256, 256))
-                img.save(thumb_path, "WEBP", lossless=True)
+                img.thumbnail((256, 256), Image.Resampling.LANCZOS)
+                img.save(thumb_path, "WEBP", quality=80)
 
                 # Clean up ComfyUI output file
                 comfyui_output_path = storage_path / "comfyui-output"
