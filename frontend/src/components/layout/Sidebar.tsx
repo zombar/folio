@@ -72,6 +72,25 @@ export default function Sidebar() {
       </svg>
       Workflows
      </Link>
+
+     <Link
+      to="/history"
+      className={`flex items-center gap-3 px-3 py-2 transition-colors ${
+       location.pathname === '/history'
+        ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white'
+        : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white'
+      }`}
+     >
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+       <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+       />
+      </svg>
+      History
+     </Link>
     </div>
 
     <div className="mt-8">

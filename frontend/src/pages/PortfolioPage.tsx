@@ -1,14 +1,13 @@
-import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { usePortfolio, useDeletePortfolio, useUpdatePortfolio } from '../hooks/usePortfolios'
 import { useGenerations, useDeleteGeneration } from '../hooks/useGenerations'
 import { useUIStore } from '../stores/uiStore'
 import { ImageGrid } from '../components/gallery'
 import { Button, Spinner } from '../components/ui'
-import { useNavigate } from 'react-router-dom'
 
 export default function PortfolioPage() {
- const { id } = useParams<{ id: string }>()
+ const { id, imageId } = useParams<{ id: string; imageId?: string }>()
  const navigate = useNavigate()
  const { data: portfolio, isLoading: portfolioLoading } = usePortfolio(id!)
  const { data: generations, isLoading: generationsLoading } = useGenerations(id)
@@ -17,6 +16,18 @@ export default function PortfolioPage() {
  const updatePortfolio = useUpdatePortfolio()
  const openImageDetail = useUIStore((state) => state.openImageDetail)
  const [isEditing, setIsEditing] = useState(false)
+
+ // Handle direct image link - open modal when imageId is in URL
+ useEffect(() => {
+  if (imageId) {
+   openImageDetail(imageId)
+  }
+ }, [imageId, openImageDetail])
+
+ // Custom handler for opening image - navigates to image URL
+ const handleImageClick = (generationId: string) => {
+  navigate(`/portfolio/${id}/image/${generationId}`)
+ }
  const [editName, setEditName] = useState('')
  const [editDescription, setEditDescription] = useState('')
 
@@ -159,7 +170,7 @@ export default function PortfolioPage() {
    ) : (
     <ImageGrid
      generations={generations}
-     onImageClick={openImageDetail}
+     onImageClick={handleImageClick}
      onImageDelete={handleImageDelete}
      onSetCover={handleSetCover}
      coverImageId={portfolio.cover_image_id}
