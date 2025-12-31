@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import CloseIcon from '@mui/icons-material/Close'
 import DownloadIcon from '@mui/icons-material/Download'
+import DeleteIcon from '@mui/icons-material/Delete'
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 import PhotoSizeSelectLargeIcon from '@mui/icons-material/PhotoSizeSelectLarge'
 import OpenInFullIcon from '@mui/icons-material/OpenInFull'
 import ClearIcon from '@mui/icons-material/Clear'
 import AutorenewIcon from '@mui/icons-material/Autorenew'
-import { TransformViewport, ImageToolbar, ViewportPanel, Input, Spinner, Button } from '../ui'
+import { TransformViewport, ImageToolbar, ViewportPanel, Input, Spinner } from '../ui'
 import type { TransformViewportHandle } from '../ui'
 import { useGeneration, useGenerations, useDeleteGeneration, useCreateGeneration } from '../../hooks/useGenerations'
 import { useGenerationStore } from '../../stores/generationStore'
@@ -258,6 +259,14 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
 
     return [
       {
+        id: 'delete',
+        icon: DeleteIcon,
+        tooltip: 'Delete',
+        onClick: handleDelete,
+        variant: 'danger' as const,
+      },
+      { type: 'divider' as const },
+      {
         id: 'inpaint',
         icon: AutoFixHighIcon,
         tooltip: 'Touch-up (Inpaint)',
@@ -337,19 +346,7 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
             maskMode={activePanel === 'inpaint'}
             brushSize={brushSize}
             onMaskChange={setHasMask}
-            toolbar={
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDelete}
-                  className="bg-neutral-900/50 border-white/20 text-white/70 hover:text-white hover:bg-neutral-900/70"
-                >
-                  Delete
-                </Button>
-                <ImageToolbar items={getToolbarItems()} position="top-right" />
-              </div>
-            }
+            toolbar={<ImageToolbar items={getToolbarItems()} position="top-right" />}
           >
             <img
               src={getImageUrl(generation.id)}
