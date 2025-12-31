@@ -61,6 +61,11 @@ export const generationApi = {
     const response = await api.post(`/generations/${id}/iterate`)
     return response.data
   },
+
+  listAnimations: async (portfolioId: string): Promise<Generation[]> => {
+    const response = await api.get(`/portfolios/${portfolioId}/animations`)
+    return response.data
+  },
 }
 
 // Image URLs
@@ -74,6 +79,10 @@ export const getThumbnailUrl = (path: string | null): string | null => {
   if (!path) return null
   const id = path.split('/').pop()?.replace('_thumb.webp', '')
   return `/api/images/${id}/thumbnail`
+}
+
+export const getVideoUrl = (generationId: string): string => {
+  return `/api/images/${generationId}/video`
 }
 
 // Model API

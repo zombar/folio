@@ -7,8 +7,17 @@ from app.config import settings
 from app.database import create_tables, SessionLocal
 from app.api import portfolios, generations, images, events, health, models, workflows
 from app.services.builtin_workflows import seed_builtin_workflows
-from app.services.job_queue import init_job_queue
+from app.services.job_queue import init_job_queue, JobType, Job
 from app.services.generation_service import process_generation_job
+from app.services.animation_processor import process_animation_job
+
+
+async def process_job(job: Job):
+    """Route jobs to appropriate processor based on job type."""
+    if job.job_type == JobType.ANIMATION:
+        await process_animation_job(job)
+    else:
+        await process_generation_job(job)
 
 
 @asynccontextmanager
@@ -27,7 +36,7 @@ async def lifespan(app: FastAPI):
     # Initialize and start job queue worker
     storage_path = Path(settings.storage_path)
     job_queue = init_job_queue(storage_path)
-    job_queue.set_processor(process_generation_job)
+    job_queue.set_processor(process_job)
     await job_queue.start_worker()
 
     yield

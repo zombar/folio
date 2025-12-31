@@ -1,5 +1,6 @@
 import type { Generation } from '../../types'
 import { Spinner } from '../ui'
+import VideoPlayer from './VideoPlayer'
 
 interface ImageCardProps {
  generation: Generation
@@ -7,11 +8,14 @@ interface ImageCardProps {
  onDelete?: (e: React.MouseEvent) => void
  onSetCover?: (e: React.MouseEvent) => void
  isCover?: boolean
+ isPlayingAnimation?: boolean
 }
 
-export default function ImageCard({ generation, onClick, onDelete, onSetCover, isCover }: ImageCardProps) {
+export default function ImageCard({ generation, onClick, onDelete, onSetCover, isCover, isPlayingAnimation }: ImageCardProps) {
  const getThumbnailUrl = (id: string) => `/api/images/${id}/thumbnail`
  const isClickable = generation.status === 'completed'
+ const isAnimationType = generation.generation_type === 'animate'
+ const shouldShowVideo = isAnimationType && generation.status === 'completed' && generation.video_path && isPlayingAnimation
 
  return (
   <div
@@ -60,13 +64,25 @@ export default function ImageCard({ generation, onClick, onDelete, onSetCover, i
      </svg>
     </button>
    )}
-   {generation.status === 'completed' && generation.thumbnail_path ? (
-    <img
-     src={getThumbnailUrl(generation.id)}
-     alt={generation.prompt}
-     className="w-full h-full object-cover"
-     loading="lazy"
-    />
+   {shouldShowVideo ? (
+    <VideoPlayer generationId={generation.id} />
+   ) : generation.status === 'completed' && generation.thumbnail_path ? (
+    <>
+     <img
+      src={getThumbnailUrl(generation.id)}
+      alt={generation.prompt}
+      className="w-full h-full object-cover"
+      loading="lazy"
+     />
+     {/* Animation indicator */}
+     {isAnimationType && (
+      <div className="absolute bottom-1 left-1 z-10 w-5 h-5 flex items-center justify-center bg-black/60 text-white rounded-full">
+       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M8 5v14l11-7z" />
+       </svg>
+      </div>
+     )}
+    </>
    ) : generation.status === 'processing' ? (
     <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-100 dark:bg-neutral-800">
      <Spinner size="md" className="text-neutral-500 mb-2" />

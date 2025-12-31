@@ -3,7 +3,7 @@ from typing import Optional, Literal
 from datetime import datetime
 
 
-GenerationType = Literal["txt2img", "inpaint", "upscale", "outpaint"]
+GenerationType = Literal["txt2img", "inpaint", "upscale", "outpaint", "animate"]
 
 
 class GenerationCreate(BaseModel):
@@ -37,6 +37,10 @@ class GenerationCreate(BaseModel):
     outpaint_top: Optional[int] = None
     outpaint_bottom: Optional[int] = None
     outpaint_feather: Optional[int] = None
+    # Animation fields
+    motion_bucket_id: Optional[int] = None
+    fps: Optional[int] = None
+    duration_seconds: Optional[float] = None
 
 
 class GenerationResponse(BaseModel):
@@ -75,6 +79,11 @@ class GenerationResponse(BaseModel):
     outpaint_top: Optional[int]
     outpaint_bottom: Optional[int]
     outpaint_feather: Optional[int]
+    # Animation fields
+    video_path: Optional[str]
+    motion_bucket_id: Optional[int]
+    fps: Optional[int]
+    duration_seconds: Optional[float]
     # Timestamps
     created_at: datetime
     completed_at: Optional[datetime]

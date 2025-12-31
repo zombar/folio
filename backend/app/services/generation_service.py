@@ -32,6 +32,115 @@ class GenerationService:
         generations = query.order_by(Generation.created_at.desc()).all()
         return [GenerationResponse(**g.to_dict()) for g in generations]
 
+    def list_animations(self, portfolio_id: str) -> List[GenerationResponse]:
+        """List completed animate-type generations for a portfolio."""
+        generations = (
+            self.db.query(Generation)
+            .filter(
+                Generation.portfolio_id == portfolio_id,
+                Generation.generation_type == "animate",
+                Generation.status == GenerationStatus.COMPLETED,
+            )
+            .order_by(Generation.created_at.desc())
+            .all()
+        )
+        return [GenerationResponse(**g.to_dict()) for g in generations]
+
+    def should_auto_animate(self, portfolio_id: str) -> bool:
+        """Check if portfolio needs more animations (< 25% of txt2img)."""
+        txt2img_count = (
+            self.db.query(Generation)
+            .filter(
+                Generation.portfolio_id == portfolio_id,
+                Generation.generation_type == "txt2img",
+                Generation.status == GenerationStatus.COMPLETED,
+            )
+            .count()
+        )
+
+        if txt2img_count == 0:
+            return False
+
+        animate_count = (
+            self.db.query(Generation)
+            .filter(
+                Generation.portfolio_id == portfolio_id,
+                Generation.generation_type == "animate",
+            )
+            .count()
+        )
+
+        return animate_count / txt2img_count < 0.25
+
+    def get_unanimated_generation(self, portfolio_id: str) -> Optional[Generation]:
+        """Get a random completed txt2img generation without an animation."""
+        from sqlalchemy import not_, select
+
+        # Subquery to find source_generation_ids that have animations
+        animated_ids_subquery = (
+            select(Generation.source_generation_id)
+            .where(
+                Generation.portfolio_id == portfolio_id,
+                Generation.generation_type == "animate",
+                Generation.source_generation_id.isnot(None),
+            )
+        )
+
+        # Get txt2img generations without animations
+        unanimated = (
+            self.db.query(Generation)
+            .filter(
+                Generation.portfolio_id == portfolio_id,
+                Generation.generation_type == "txt2img",
+                Generation.status == GenerationStatus.COMPLETED,
+                Generation.image_path.isnot(None),
+                not_(Generation.id.in_(animated_ids_subquery)),
+            )
+            .all()
+        )
+
+        if not unanimated:
+            return None
+
+        return random.choice(unanimated)
+
+    async def create_animation(self, source_generation_id: str) -> Optional[GenerationResponse]:
+        """Create an animation for a source generation with LOW priority."""
+        source = self.db.query(Generation).filter(
+            Generation.id == source_generation_id
+        ).first()
+        if not source:
+            return None
+        if source.status != GenerationStatus.COMPLETED:
+            return None
+        if not source.image_path:
+            return None
+
+        data = GenerationCreate(
+            portfolio_id=source.portfolio_id,
+            prompt=source.prompt,
+            generation_type="animate",
+            source_generation_id=source_generation_id,
+            motion_bucket_id=127,  # Default SVD motion
+            fps=8,
+            duration_seconds=3.0,
+        )
+        return await self.create(data)
+
+    async def maybe_auto_animate(self, portfolio_id: str) -> Optional[GenerationResponse]:
+        """Auto-animate if portfolio has < 25% animations.
+
+        Called after txt2img generation completes to maintain 25% animation ratio.
+        """
+        if not self.should_auto_animate(portfolio_id):
+            return None
+
+        source = self.get_unanimated_generation(portfolio_id)
+        if not source:
+            return None
+
+        return await self.create_animation(source.id)
+
     def get(self, generation_id: str) -> Optional[GenerationResponse]:
         """Get a generation by ID."""
         generation = self.db.query(Generation).filter(Generation.id == generation_id).first()
@@ -44,9 +153,9 @@ class GenerationService:
         # Generate seed if not provided
         seed = data.seed if data.seed is not None else random.randint(0, 2**32 - 1)
 
-        # For inpainting/upscaling/outpainting, validate source generation exists
+        # For inpainting/upscaling/outpainting/animate, validate source generation exists
         source_generation = None
-        if data.generation_type in ("inpaint", "upscale", "outpaint"):
+        if data.generation_type in ("inpaint", "upscale", "outpaint", "animate"):
             if not data.source_generation_id:
                 raise ValueError(f"source_generation_id is required for {data.generation_type}")
             source_generation = self.db.query(Generation).filter(
@@ -75,6 +184,10 @@ class GenerationService:
                 top_bottom = (data.outpaint_top or 0) + (data.outpaint_bottom or 0)
                 data.width = source_generation.width + left_right
                 data.height = source_generation.height + top_bottom
+            elif data.generation_type == "animate":
+                # Use source dimensions for animation
+                data.width = source_generation.width
+                data.height = source_generation.height
 
         # Create generation record
         generation = Generation(
@@ -105,6 +218,10 @@ class GenerationService:
             outpaint_top=data.outpaint_top,
             outpaint_bottom=data.outpaint_bottom,
             outpaint_feather=data.outpaint_feather,
+            # Animation fields
+            motion_bucket_id=data.motion_bucket_id,
+            fps=data.fps,
+            duration_seconds=data.duration_seconds,
             status=GenerationStatus.PENDING,
         )
         self.db.add(generation)
@@ -117,16 +234,21 @@ class GenerationService:
             generation.mask_path = str(mask_path)
             self.db.commit()
 
-        # Determine priority: CRITICAL for inpaint/upscale/outpaint, HIGH for txt2img
-        if data.generation_type in ("inpaint", "upscale", "outpaint"):
+        # Determine priority and job type based on generation type
+        if data.generation_type == "animate":
+            priority = JobPriority.LOW
+            job_type = JobType.ANIMATION
+        elif data.generation_type in ("inpaint", "upscale", "outpaint"):
             priority = JobPriority.CRITICAL
+            job_type = JobType.GENERATION
         else:
             priority = JobPriority.HIGH
+            job_type = JobType.GENERATION
 
         # Create job
         job = Job(
             id=generation.id,
-            job_type=JobType.GENERATION,
+            job_type=job_type,
             priority=priority,
             params={
                 "generation_id": generation.id,
