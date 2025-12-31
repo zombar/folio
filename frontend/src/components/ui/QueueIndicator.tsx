@@ -13,26 +13,34 @@ export default function QueueIndicator({ pendingCount, processingCount }: QueueI
   if (processingCount > 0) titleParts.push(`${processingCount} processing`)
   const title = titleParts.join(', ')
 
+  // Calculate sparkline dimensions - show up to 25 dots in a compact space
+  const maxDots = 25
+  const displayCount = Math.min(total, maxDots)
+
   return (
     <div
-      className={`flex items-center gap-1 px-2 py-1 rounded ${processingCount > 0 ? 'animate-pulse' : ''}`}
+      className="flex items-center gap-2 px-2 py-1"
       title={title}
     >
-      {/* Sparkline bars representing queue */}
-      <div className="flex items-end gap-0.5 h-4">
-        {Array.from({ length: Math.min(total, 5) }).map((_, i) => (
-          <div
-            key={i}
-            className={`w-1 rounded-sm ${
-              i < processingCount
-                ? 'bg-neutral-600 dark:bg-neutral-300'
-                : 'bg-neutral-300 dark:bg-neutral-600'
-            }`}
-            style={{ height: `${Math.max(25, Math.min(100, (i + 1) * 20))}%` }}
-          />
-        ))}
+      {/* Sparkline - grid of small squares */}
+      <div className="flex flex-wrap gap-px max-w-[60px]" style={{ width: `${Math.min(displayCount, 5) * 8}px` }}>
+        {Array.from({ length: displayCount }).map((_, i) => {
+          const isProcessing = i < processingCount
+          return (
+            <div
+              key={i}
+              className={`w-1.5 h-1.5 rounded-sm transition-colors ${
+                isProcessing
+                  ? 'bg-neutral-700 dark:bg-neutral-200 animate-pulse'
+                  : 'bg-neutral-300 dark:bg-neutral-600'
+              }`}
+            />
+          )
+        })}
       </div>
-      <span className="text-xs text-neutral-500 dark:text-neutral-400 ml-1">{total}</span>
+      <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400 tabular-nums">
+        {total}
+      </span>
     </div>
   )
 }
