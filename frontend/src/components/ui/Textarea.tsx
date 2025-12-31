@@ -1,31 +1,31 @@
 import { TextareaHTMLAttributes, forwardRef } from 'react'
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label?: string
-  error?: string
+ label?: string
+ error?: string
 }
 
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className = '', label, error, id, ...props }, ref) => {
-    const inputId = id || label?.toLowerCase().replace(/\s+/g, '-')
+ ({ className = '', label, error, id, ...props }, ref) => {
+  const inputId = id || label?.toLowerCase().replace(/\s+/g, '-')
 
-    return (
-      <div className="w-full">
-        {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-            {label}
-          </label>
-        )}
-        <textarea
-          ref={ref}
-          id={inputId}
-          className={`w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-3 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent resize-none ${error ? 'border-neutral-500 dark:border-neutral-400' : ''} ${className}`}
-          {...props}
-        />
-        {error && <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{error}</p>}
-      </div>
-    )
-  }
+  return (
+   <div className="w-full">
+    {label && (
+     <label htmlFor={inputId} className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+      {label}
+     </label>
+    )}
+    <textarea
+     ref={ref}
+     id={inputId}
+     className={`w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 px-4 py-3 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent resize-none rounded-sm ${error ? 'border-neutral-500 dark:border-neutral-400' : ''} ${className}`}
+     {...props}
+    />
+    {error && <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{error}</p>}
+   </div>
+  )
+ }
 )
 
 Textarea.displayName = 'Textarea'
