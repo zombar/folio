@@ -8,9 +8,16 @@ build: ## Build all containers
 
 up: ## Start backend + frontend (no GPU)
 	docker compose up -d
+	@echo ""
+	@echo "  Backend:  http://localhost:8010"
+	@echo "  Frontend: http://localhost:5173"
 
 up-gpu: ## Start all services including ComfyUI (requires NVIDIA GPU)
 	docker compose --profile gpu up -d
+	@echo ""
+	@echo "  Backend:  http://localhost:8010"
+	@echo "  Frontend: http://localhost:5173"
+	@echo "  ComfyUI:  http://localhost:8188"
 
 down: ## Stop all services
 	docker compose --profile gpu down
