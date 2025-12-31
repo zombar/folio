@@ -47,6 +47,16 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
   const currentIndex = completedGenerations.findIndex(g => g.id === generationId)
   const totalImages = completedGenerations.length
 
+  const getImageUrl = (id: string) => `/api/images/${id}`
+
+  // Preload all portfolio images for smooth navigation
+  useEffect(() => {
+    completedGenerations.forEach(gen => {
+      const img = new Image()
+      img.src = getImageUrl(gen.id)
+    })
+  }, [completedGenerations])
+
   const handlePrev = useCallback(() => {
     if (currentIndex > 0 && generation) {
       const prevGeneration = completedGenerations[currentIndex - 1]
@@ -92,8 +102,6 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
       setOutpaintPrompt(generation.prompt)
     }
   }, [generation])
-
-  const getImageUrl = (id: string) => `/api/images/${id}`
 
   const handleDownload = useCallback(() => {
     if (!generation) return
