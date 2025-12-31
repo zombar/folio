@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { usePortfolio, useDeletePortfolio } from '../hooks/usePortfolios'
-import { useGenerations } from '../hooks/useGenerations'
+import { useGenerations, useDeleteGeneration } from '../hooks/useGenerations'
 import { useUIStore } from '../stores/uiStore'
 import { ImageGrid } from '../components/gallery'
 import { Button, Spinner } from '../components/ui'
@@ -12,6 +12,7 @@ export default function PortfolioPage() {
  const { data: portfolio, isLoading: portfolioLoading } = usePortfolio(id!)
  const { data: generations, isLoading: generationsLoading } = useGenerations(id)
  const deletePortfolio = useDeletePortfolio()
+ const deleteGeneration = useDeleteGeneration()
  const openImageDetail = useUIStore((state) => state.openImageDetail)
 
  const handleDelete = async () => {
@@ -19,6 +20,10 @@ export default function PortfolioPage() {
    await deletePortfolio.mutateAsync(id!)
    navigate('/')
   }
+ }
+
+ const handleImageDelete = async (generationId: string) => {
+  await deleteGeneration.mutateAsync(generationId)
  }
 
  if (portfolioLoading) {
@@ -89,6 +94,7 @@ export default function PortfolioPage() {
     <ImageGrid
      generations={generations}
      onImageClick={openImageDetail}
+     onImageDelete={handleImageDelete}
     />
    )}
   </div>

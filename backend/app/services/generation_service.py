@@ -277,6 +277,16 @@ async def process_generation_job(job: Job):
                 img.thumbnail((256, 256))
                 img.save(thumb_path, "WEBP", quality=80)
 
+                # Clean up ComfyUI output file
+                comfyui_output_path = storage_path / "comfyui-output"
+                subfolder = img_info.get("subfolder", "")
+                if subfolder:
+                    comfyui_file = comfyui_output_path / subfolder / img_info["filename"]
+                else:
+                    comfyui_file = comfyui_output_path / img_info["filename"]
+                if comfyui_file.exists():
+                    comfyui_file.unlink()
+
                 # Update generation
                 generation.image_path = f"images/{image_filename}"
                 generation.thumbnail_path = f"images/{thumb_filename}"
