@@ -200,7 +200,7 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
 
   if (isLoading || !generation) {
     return (
-      <div className="relative w-full h-[calc(100vh-12rem)] min-h-[400px] bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center">
+      <div className="relative w-full h-[calc(100vh-6.5rem)] min-h-[400px] bg-neutral-200 dark:bg-neutral-950 flex items-center justify-center">
         <Spinner />
       </div>
     )
@@ -226,10 +226,11 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
 
     return [
       {
-        id: 'close',
-        icon: CloseIcon,
-        tooltip: 'Close',
-        onClick: onClose,
+        id: 'delete',
+        icon: DeleteIcon,
+        tooltip: 'Delete',
+        onClick: handleDelete,
+        variant: 'danger' as const,
       },
       { type: 'divider' as const },
       {
@@ -270,17 +271,16 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
       },
       { type: 'divider' as const },
       {
-        id: 'delete',
-        icon: DeleteIcon,
-        tooltip: 'Delete',
-        onClick: handleDelete,
-        variant: 'danger' as const,
+        id: 'close',
+        icon: CloseIcon,
+        tooltip: 'Close',
+        onClick: onClose,
       },
     ]
   }
 
   return (
-    <div className="relative w-full h-[calc(100vh-12rem)] min-h-[400px] bg-neutral-100 dark:bg-neutral-900 overflow-hidden">
+    <div className="relative w-full h-[calc(100vh-6.5rem)] min-h-[400px] bg-neutral-200 dark:bg-neutral-950 overflow-hidden">
       {/* Main viewport */}
       <div className="w-full h-full">
         {isCompleted ? (

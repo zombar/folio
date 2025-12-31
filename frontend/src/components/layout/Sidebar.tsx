@@ -6,6 +6,7 @@ import { useGenerations } from '../../hooks/useGenerations'
 export default function Sidebar() {
  const sidebarOpen = useUIStore((state) => state.sidebarOpen)
  const openCreateModal = useUIStore((state) => state.openCreatePortfolioModal)
+ const closeImageDetail = useUIStore((state) => state.closeImageDetail)
  const { data: portfolios, isLoading } = usePortfolios()
  const { data: generations } = useGenerations()
  const location = useLocation()
@@ -18,6 +19,7 @@ export default function Sidebar() {
     <div className="space-y-1">
      <Link
       to="/"
+      onClick={closeImageDetail}
       className={`flex items-center gap-3 px-3 py-2 transition-colors ${
        location.pathname === '/'
         ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white'
@@ -38,6 +40,7 @@ export default function Sidebar() {
      {portfolios && portfolios.length > 0 && (
       <Link
        to="/generate"
+       onClick={closeImageDetail}
        className={`flex items-center gap-3 px-3 py-2 transition-colors ${
         location.pathname === '/generate'
          ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white'
@@ -58,6 +61,7 @@ export default function Sidebar() {
 
      <Link
       to="/workflows"
+      onClick={closeImageDetail}
       className={`flex items-center gap-3 px-3 py-2 transition-colors ${
        location.pathname === '/workflows'
         ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white'
@@ -78,6 +82,7 @@ export default function Sidebar() {
      {generations && generations.length > 0 && (
       <Link
        to="/history"
+       onClick={closeImageDetail}
        className={`flex items-center gap-3 px-3 py-2 transition-colors ${
         location.pathname === '/history'
          ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white'
@@ -128,6 +133,7 @@ export default function Sidebar() {
         <Link
          key={portfolio.id}
          to={`/portfolio/${portfolio.id}`}
+         onClick={closeImageDetail}
          className={`flex items-center gap-3 px-3 py-2 transition-colors ${
           location.pathname === `/portfolio/${portfolio.id}`
            ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white'

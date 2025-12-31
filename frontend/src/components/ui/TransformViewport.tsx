@@ -9,13 +9,15 @@ import { Tooltip } from './Tooltip'
 
 // Theme-aware grid colors
 const useGridColors = () => {
-  const [isDark, setIsDark] = useState(false)
+  // Initialize with current theme to avoid flash
+  const [isDark, setIsDark] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  )
 
   useEffect(() => {
     const checkDark = () => {
       setIsDark(document.documentElement.classList.contains('dark'))
     }
-    checkDark()
     const observer = new MutationObserver(checkDark)
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
     return () => observer.disconnect()
