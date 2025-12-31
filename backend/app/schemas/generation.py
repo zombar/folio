@@ -13,6 +13,9 @@ class GenerationCreate(BaseModel):
     steps: int = 30
     cfg_scale: float = 7.0
     sampler: str = "euler"
+    workflow_id: Optional[str] = None
+    model_filename: Optional[str] = None
+    lora_filename: Optional[str] = None
 
 
 class GenerationResponse(BaseModel):
@@ -32,6 +35,9 @@ class GenerationResponse(BaseModel):
     image_path: Optional[str]
     thumbnail_path: Optional[str]
     parent_id: Optional[str]
+    workflow_id: Optional[str]
+    model_filename: Optional[str]
+    lora_filename: Optional[str]
     created_at: datetime
     completed_at: Optional[datetime]
 

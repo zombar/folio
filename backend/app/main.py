@@ -3,8 +3,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.database import create_tables
-from app.api import portfolios, generations, images, events, health
+from app.database import create_tables, SessionLocal
+from app.api import portfolios, generations, images, events, health, models, workflows
+from app.services.builtin_workflows import seed_builtin_workflows
 
 
 @asynccontextmanager
@@ -12,6 +13,14 @@ async def lifespan(app: FastAPI):
     """Application lifespan handler."""
     # Startup: create database tables
     create_tables()
+
+    # Seed built-in workflows
+    db = SessionLocal()
+    try:
+        seed_builtin_workflows(db)
+    finally:
+        db.close()
+
     yield
     # Shutdown: cleanup if needed
 
@@ -38,3 +47,5 @@ app.include_router(portfolios.router, prefix="/api", tags=["portfolios"])
 app.include_router(generations.router, prefix="/api", tags=["generations"])
 app.include_router(images.router, prefix="/api", tags=["images"])
 app.include_router(events.router, prefix="/api", tags=["events"])
+app.include_router(models.router, prefix="/api", tags=["models"])
+app.include_router(workflows.router, prefix="/api", tags=["workflows"])

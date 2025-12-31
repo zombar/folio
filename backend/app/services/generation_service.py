@@ -9,6 +9,7 @@ import io
 
 from app.config import settings
 from app.models.generation import Generation, GenerationStatus
+from app.models.workflow import WorkflowTemplate
 from app.schemas.generation import GenerationCreate, GenerationResponse
 from app.services.event_bus import event_bus
 from app.services.job_queue import job_queue, Job
@@ -53,6 +54,9 @@ class GenerationService:
             steps=data.steps,
             cfg_scale=data.cfg_scale,
             sampler=data.sampler,
+            workflow_id=data.workflow_id,
+            model_filename=data.model_filename,
+            lora_filename=data.lora_filename,
             status=GenerationStatus.PENDING,
         )
         self.db.add(generation)
@@ -143,22 +147,57 @@ class GenerationService:
 
     def _prepare_workflow(self, generation: Generation) -> dict:
         """Prepare workflow with generation parameters."""
-        workflow = self._load_workflow("txt2img_sdxl")
+        # Load workflow from database or file
+        if generation.workflow_id:
+            workflow_template = self.db.query(WorkflowTemplate).filter(
+                WorkflowTemplate.id == generation.workflow_id
+            ).first()
+            if workflow_template:
+                import copy
+                workflow = copy.deepcopy(workflow_template.workflow_json)
+            else:
+                workflow = self._load_workflow("txt2img_sdxl")
+        else:
+            workflow = self._load_workflow("txt2img_sdxl")
 
-        # Inject parameters (node IDs match the workflow file)
-        # These will be updated when we copy the actual workflow
-        if "6" in workflow:  # Positive prompt
-            workflow["6"]["inputs"]["text"] = generation.prompt
-        if "7" in workflow:  # Negative prompt
-            workflow["7"]["inputs"]["text"] = generation.negative_prompt or ""
-        if "3" in workflow:  # KSampler
-            workflow["3"]["inputs"]["seed"] = generation.seed
-            workflow["3"]["inputs"]["steps"] = generation.steps
-            workflow["3"]["inputs"]["cfg"] = generation.cfg_scale
-            workflow["3"]["inputs"]["sampler_name"] = generation.sampler
-        if "5" in workflow:  # EmptyLatentImage
-            workflow["5"]["inputs"]["width"] = generation.width
-            workflow["5"]["inputs"]["height"] = generation.height
+        # Inject model filename if specified
+        if generation.model_filename:
+            for node in workflow.values():
+                if isinstance(node, dict) and node.get("class_type") == "CheckpointLoaderSimple":
+                    node["inputs"]["ckpt_name"] = generation.model_filename
+                    break
+
+        # Inject LoRA filename if specified
+        if generation.lora_filename:
+            for node in workflow.values():
+                if isinstance(node, dict) and "LoraLoader" in node.get("class_type", ""):
+                    node["inputs"]["lora_name"] = generation.lora_filename
+                    break
+
+        # Inject generation parameters
+        # Find nodes by class_type to be more robust
+        for node_id, node in workflow.items():
+            if not isinstance(node, dict):
+                continue
+            class_type = node.get("class_type", "")
+
+            if class_type == "CLIPTextEncode":
+                # Check if this is positive or negative prompt based on connection
+                # Node 6 is typically positive, node 7 is typically negative
+                if node_id == "6":
+                    node["inputs"]["text"] = generation.prompt
+                elif node_id == "7":
+                    node["inputs"]["text"] = generation.negative_prompt or ""
+
+            elif class_type == "KSampler":
+                node["inputs"]["seed"] = generation.seed
+                node["inputs"]["steps"] = generation.steps
+                node["inputs"]["cfg"] = generation.cfg_scale
+                node["inputs"]["sampler_name"] = generation.sampler
+
+            elif class_type == "EmptyLatentImage":
+                node["inputs"]["width"] = generation.width
+                node["inputs"]["height"] = generation.height
 
         return workflow
 

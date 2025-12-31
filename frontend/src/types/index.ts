@@ -25,6 +25,9 @@ export interface Generation {
   image_path: string | null
   thumbnail_path: string | null
   parent_id: string | null
+  workflow_id: string | null
+  model_filename: string | null
+  lora_filename: string | null
   created_at: string
   completed_at: string | null
 }
@@ -39,4 +42,39 @@ export interface GenerationParams {
   steps?: number
   cfg_scale?: number
   sampler?: string
+  workflow_id?: string
+  model_filename?: string
+  lora_filename?: string
+}
+
+export interface ModelInfo {
+  filename: string
+  path: string
+  type: 'checkpoint' | 'lora'
+  size: number
+}
+
+export interface WorkflowTemplate {
+  id: string
+  name: string
+  description: string | null
+  workflow_json: Record<string, unknown>
+  category: string | null
+  is_builtin: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface WorkflowCreate {
+  name: string
+  description?: string
+  workflow_json: Record<string, unknown>
+  category?: string
+}
+
+export interface WorkflowUpdate {
+  name?: string
+  description?: string
+  workflow_json?: Record<string, unknown>
+  category?: string
 }
