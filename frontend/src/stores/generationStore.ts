@@ -10,6 +10,9 @@ interface GenerationState {
   cfgScale: number
   sampler: string
   seed: number | null
+  workflowId: string | null
+  modelFilename: string | null
+  loraFilename: string | null
 
   setPrompt: (prompt: string) => void
   setNegativePrompt: (prompt: string) => void
@@ -19,6 +22,9 @@ interface GenerationState {
   setCfgScale: (cfg: number) => void
   setSampler: (sampler: string) => void
   setSeed: (seed: number | null) => void
+  setWorkflowId: (id: string | null) => void
+  setModelFilename: (filename: string | null) => void
+  setLoraFilename: (filename: string | null) => void
   reset: () => void
   getParams: (portfolioId: string) => GenerationParams
 }
@@ -32,6 +38,9 @@ const initialState = {
   cfgScale: 7.0,
   sampler: 'euler',
   seed: null as number | null,
+  workflowId: null as string | null,
+  modelFilename: null as string | null,
+  loraFilename: null as string | null,
 }
 
 export const useGenerationStore = create<GenerationState>((set, get) => ({
@@ -45,6 +54,9 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
   setCfgScale: (cfgScale) => set({ cfgScale }),
   setSampler: (sampler) => set({ sampler }),
   setSeed: (seed) => set({ seed }),
+  setWorkflowId: (workflowId) => set({ workflowId }),
+  setModelFilename: (modelFilename) => set({ modelFilename }),
+  setLoraFilename: (loraFilename) => set({ loraFilename }),
   reset: () => set(initialState),
 
   getParams: (portfolioId: string): GenerationParams => {
@@ -59,6 +71,9 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
       cfg_scale: state.cfgScale,
       sampler: state.sampler,
       seed: state.seed ?? undefined,
+      workflow_id: state.workflowId ?? undefined,
+      model_filename: state.modelFilename ?? undefined,
+      lora_filename: state.loraFilename ?? undefined,
     }
   },
 }))

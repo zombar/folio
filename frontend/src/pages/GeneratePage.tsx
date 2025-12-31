@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { usePortfolios } from '../hooks/usePortfolios'
 import { useCreateGeneration } from '../hooks/useGenerations'
 import { useGenerationStore } from '../stores/generationStore'
-import { PromptInput, ParameterControls } from '../components/generation'
+import { PromptInput, ParameterControls, ModelSelector, WorkflowSelector } from '../components/generation'
 import { Button } from '../components/ui'
 
 export default function GeneratePage() {
@@ -20,6 +20,12 @@ export default function GeneratePage() {
   const prompt = useGenerationStore((state) => state.prompt)
   const getParams = useGenerationStore((state) => state.getParams)
   const reset = useGenerationStore((state) => state.reset)
+  const workflowId = useGenerationStore((state) => state.workflowId)
+  const modelFilename = useGenerationStore((state) => state.modelFilename)
+  const loraFilename = useGenerationStore((state) => state.loraFilename)
+  const setWorkflowId = useGenerationStore((state) => state.setWorkflowId)
+  const setModelFilename = useGenerationStore((state) => state.setModelFilename)
+  const setLoraFilename = useGenerationStore((state) => state.setLoraFilename)
 
   // Update selected portfolio when preselected changes
   useEffect(() => {
@@ -66,6 +72,26 @@ export default function GeneratePage() {
             ))}
           </select>
         </div>
+
+        {/* Model selection */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ModelSelector
+            label="Checkpoint Model"
+            modelType="checkpoint"
+            value={modelFilename}
+            onChange={setModelFilename}
+          />
+          <ModelSelector
+            label="LoRA (optional)"
+            modelType="lora"
+            value={loraFilename}
+            onChange={setLoraFilename}
+            optional
+          />
+        </div>
+
+        {/* Workflow selection */}
+        <WorkflowSelector value={workflowId} onChange={setWorkflowId} />
 
         {/* Prompt inputs */}
         <PromptInput />

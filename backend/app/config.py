@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     # Storage
     storage_path: str = "./storage"
 
+    # Models
+    models_path: str = "./models"
+
     # CORS
     cors_origins: List[str] = ["http://localhost:5173", "http://localhost:3000"]
 

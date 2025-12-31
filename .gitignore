@@ -35,7 +35,9 @@ data/
 
 # Storage
 storage/
-models/
+
+# AI Models (root level only)
+/models/
 
 # IDE
 .idea/
