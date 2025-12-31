@@ -549,14 +549,14 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
         <>
           <button
             onClick={(e) => { e.stopPropagation(); onPrev() }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-neutral-900/50 hover:bg-neutral-900/70 text-white rounded-full border-2 border-white/20 transition-colors z-10"
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-neutral-900/50 hover:bg-neutral-900/70 text-white rounded-full border-2 border-white/20 shadow-lg transition-colors z-10"
             aria-label="Previous image"
           >
             <Icon icon={ChevronLeftIcon} size="lg" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onNext() }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-neutral-900/50 hover:bg-neutral-900/70 text-white rounded-full border-2 border-white/20 transition-colors z-10"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-neutral-900/50 hover:bg-neutral-900/70 text-white rounded-full border-2 border-white/20 shadow-lg transition-colors z-10"
             aria-label="Next image"
           >
             <Icon icon={ChevronRightIcon} size="lg" />
@@ -570,7 +570,7 @@ export const TransformViewport = forwardRef<TransformViewportHandle, TransformVi
       )}
 
       {showZoomControls && (
-        <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-neutral-900/50 backdrop-blur-sm p-2 border-2 border-white/20 z-10">
+        <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-neutral-900/50 backdrop-blur-sm p-2 border-2 border-white/20 shadow-lg z-10">
           <Tooltip content="Fit to view" position="bottom">
             <button
               onClick={(e) => { e.stopPropagation(); fitToContainer() }}
