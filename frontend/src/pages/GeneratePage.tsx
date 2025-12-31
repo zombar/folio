@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { usePortfolios } from '../hooks/usePortfolios'
 import { useCreateGeneration } from '../hooks/useGenerations'
 import { useGenerationStore } from '../stores/generationStore'
+import { PromptInput, ParameterControls } from '../components/generation'
+import { Button } from '../components/ui'
 
 export default function GeneratePage() {
   const [searchParams] = useSearchParams()
@@ -13,22 +15,18 @@ export default function GeneratePage() {
   const createGeneration = useCreateGeneration()
 
   const [selectedPortfolio, setSelectedPortfolio] = useState(preselectedPortfolio || '')
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
-  const {
-    prompt,
-    negativePrompt,
-    width,
-    height,
-    steps,
-    cfgScale,
-    setPrompt,
-    setNegativePrompt,
-    setWidth,
-    setHeight,
-    setSteps,
-    setCfgScale,
-    getParams,
-  } = useGenerationStore()
+  const prompt = useGenerationStore((state) => state.prompt)
+  const getParams = useGenerationStore((state) => state.getParams)
+  const reset = useGenerationStore((state) => state.reset)
+
+  // Update selected portfolio when preselected changes
+  useEffect(() => {
+    if (preselectedPortfolio) {
+      setSelectedPortfolio(preselectedPortfolio)
+    }
+  }, [preselectedPortfolio])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,6 +35,7 @@ export default function GeneratePage() {
 
     try {
       await createGeneration.mutateAsync(getParams(selectedPortfolio))
+      reset()
       navigate(`/portfolio/${selectedPortfolio}`)
     } catch (error) {
       console.error('Failed to create generation:', error)
@@ -68,100 +67,43 @@ export default function GeneratePage() {
           </select>
         </div>
 
-        {/* Prompt */}
-        <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
-            Prompt
-          </label>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe the image you want to generate..."
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 min-h-[100px]"
-            required
-          />
-        </div>
+        {/* Prompt inputs */}
+        <PromptInput />
 
-        {/* Negative prompt */}
-        <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
-            Negative Prompt (optional)
-          </label>
-          <textarea
-            value={negativePrompt}
-            onChange={(e) => setNegativePrompt(e.target.value)}
-            placeholder="What to avoid in the image..."
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
-          />
-        </div>
+        {/* Advanced toggle */}
+        <button
+          type="button"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-300"
+        >
+          <svg
+            className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-90' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          Advanced Settings
+        </button>
 
-        {/* Parameters */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Width
-            </label>
-            <input
-              type="number"
-              value={width}
-              onChange={(e) => setWidth(Number(e.target.value))}
-              min={256}
-              max={2048}
-              step={64}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
-            />
+        {/* Advanced parameters */}
+        {showAdvanced && (
+          <div className="p-4 bg-slate-800/50 rounded-lg">
+            <ParameterControls />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Height
-            </label>
-            <input
-              type="number"
-              value={height}
-              onChange={(e) => setHeight(Number(e.target.value))}
-              min={256}
-              max={2048}
-              step={64}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Steps
-            </label>
-            <input
-              type="number"
-              value={steps}
-              onChange={(e) => setSteps(Number(e.target.value))}
-              min={1}
-              max={100}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              CFG Scale
-            </label>
-            <input
-              type="number"
-              value={cfgScale}
-              onChange={(e) => setCfgScale(Number(e.target.value))}
-              min={1}
-              max={20}
-              step={0.5}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
-            />
-          </div>
-        </div>
+        )}
 
         {/* Submit */}
-        <button
+        <Button
           type="submit"
-          disabled={createGeneration.isPending || !selectedPortfolio || !prompt.trim()}
-          className="w-full bg-violet-600 hover:bg-violet-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-colors"
+          size="lg"
+          loading={createGeneration.isPending}
+          disabled={!selectedPortfolio || !prompt.trim()}
+          className="w-full"
         >
-          {createGeneration.isPending ? 'Generating...' : 'Generate'}
-        </button>
+          Generate
+        </Button>
       </form>
     </div>
   )

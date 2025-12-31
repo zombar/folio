@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom'
 import { usePortfolios } from '../hooks/usePortfolios'
 import { useUIStore } from '../stores/uiStore'
+import { PortfolioGrid } from '../components/portfolio'
+import { Button, Spinner } from '../components/ui'
 
 export default function HomePage() {
   const { data: portfolios, isLoading, error } = usePortfolios()
@@ -9,7 +10,7 @@ export default function HomePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500" />
+        <Spinner size="lg" className="text-violet-500" />
       </div>
     )
   }
@@ -26,66 +27,27 @@ export default function HomePage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Portfolios</h1>
-        <button
-          onClick={openCreateModal}
-          className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-        >
-          New Portfolio
-        </button>
+        <Button onClick={openCreateModal}>New Portfolio</Button>
       </div>
 
       {portfolios?.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-slate-400 mb-4">No portfolios yet</div>
-          <button
-            onClick={openCreateModal}
-            className="text-violet-400 hover:text-violet-300 underline"
-          >
-            Create your first portfolio
-          </button>
+        <div className="text-center py-16">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-800 flex items-center justify-center">
+            <svg className="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
+            </svg>
+          </div>
+          <h2 className="text-lg font-medium text-slate-300 mb-2">No portfolios yet</h2>
+          <p className="text-slate-500 mb-4">Create your first portfolio to start generating images</p>
+          <Button onClick={openCreateModal}>Create Portfolio</Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {portfolios?.map((portfolio) => (
-            <Link
-              key={portfolio.id}
-              to={`/portfolio/${portfolio.id}`}
-              className="bg-slate-800 rounded-lg overflow-hidden hover:ring-2 hover:ring-violet-500 transition-all group"
-            >
-              <div className="aspect-video bg-slate-700 flex items-center justify-center">
-                {portfolio.cover_image_id ? (
-                  <img
-                    src={`/api/images/${portfolio.cover_image_id}/thumbnail`}
-                    alt={portfolio.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <svg
-                    className="w-12 h-12 text-slate-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                )}
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-white group-hover:text-violet-400 transition-colors">
-                  {portfolio.name}
-                </h3>
-                <p className="text-sm text-slate-400 mt-1">
-                  {portfolio.image_count} images
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <PortfolioGrid portfolios={portfolios} />
       )}
     </div>
   )
