@@ -51,11 +51,9 @@ export default function ModelSelector({
    {error && (
     <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">Failed to load models</p>
    )}
-   {!isLoading && models?.length === 0 && (
-    <p className="mt-1 text-sm text-neutral-500">
-     No {modelType}s found. Add models to ./models/{modelType === 'checkpoint' ? 'checkpoints' : 'loras'}/
-    </p>
-   )}
+   <p className="mt-1 text-sm text-neutral-500">
+    {models?.length === 0 ? 'No ' + modelType + 's found. ' : ''}Add models to ./models/{modelType === 'checkpoint' ? 'checkpoints' : 'loras'}/
+   </p>
   </div>
  )
 }
