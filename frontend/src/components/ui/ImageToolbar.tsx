@@ -61,7 +61,7 @@ export function ImageToolbar({ items, position = 'top-right', className = '' }: 
   return (
     <div
       className={`absolute ${positionClasses[position]} flex items-center gap-1.5
-                  bg-neutral-900/80 backdrop-blur-sm p-2 z-10 ${className}`}
+                  bg-neutral-900/50 backdrop-blur-sm p-2 border-2 border-white/20 z-10 ${className}`}
     >
       {items.map((item, index) => {
         if (isDivider(item)) {
