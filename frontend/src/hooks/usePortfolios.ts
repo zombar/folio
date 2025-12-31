@@ -47,6 +47,7 @@ export function useDeletePortfolio() {
     mutationFn: portfolioApi.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolios'] })
+      queryClient.invalidateQueries({ queryKey: ['generations'] })
     },
   })
 }
