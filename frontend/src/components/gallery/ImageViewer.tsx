@@ -314,6 +314,14 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
 
   return (
     <div className="relative w-full h-[calc(100vh-6.5rem)] min-h-[400px] bg-neutral-200 dark:bg-neutral-950 overflow-hidden">
+      {/* Edge fade vignette */}
+      <div
+        className="absolute inset-0 pointer-events-none z-20"
+        style={{
+          boxShadow: 'inset 0 0 100px 20px rgba(0, 0, 0, 0.3)',
+        }}
+      />
+
       {/* Main viewport */}
       <div className="w-full h-full">
         {isCompleted ? (
