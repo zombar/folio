@@ -11,15 +11,15 @@ export default function Sidebar() {
   if (!sidebarOpen) return null
 
   return (
-    <aside className="fixed left-0 top-14 bottom-0 w-64 bg-slate-800 border-r border-slate-700 overflow-y-auto">
+    <aside className="fixed left-0 top-14 bottom-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-colors">
       <nav className="p-4">
         <div className="space-y-1">
           <Link
             to="/"
             className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
               location.pathname === '/'
-                ? 'bg-slate-700 text-white'
-                : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,8 +37,8 @@ export default function Sidebar() {
             to="/generate"
             className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
               location.pathname === '/generate'
-                ? 'bg-slate-700 text-white'
-                : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,8 +56,8 @@ export default function Sidebar() {
             to="/workflows"
             className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
               location.pathname === '/workflows'
-                ? 'bg-slate-700 text-white'
-                : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,12 +74,12 @@ export default function Sidebar() {
 
         <div className="mt-8">
           <div className="flex items-center justify-between px-3 mb-2">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Portfolios
             </h3>
             <button
               onClick={openCreateModal}
-              className="p-1 hover:bg-slate-700 rounded text-slate-400 hover:text-white"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               aria-label="Create portfolio"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,9 +94,9 @@ export default function Sidebar() {
           </div>
 
           {isLoading ? (
-            <div className="px-3 py-2 text-slate-500">Loading...</div>
+            <div className="px-3 py-2 text-gray-500 dark:text-gray-500">Loading...</div>
           ) : portfolios?.length === 0 ? (
-            <div className="px-3 py-2 text-slate-500 text-sm">No portfolios yet</div>
+            <div className="px-3 py-2 text-gray-500 dark:text-gray-500 text-sm">No portfolios yet</div>
           ) : (
             <div className="space-y-1">
               {portfolios?.map((portfolio) => (
@@ -105,8 +105,8 @@ export default function Sidebar() {
                   to={`/portfolio/${portfolio.id}`}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                     location.pathname === `/portfolio/${portfolio.id}`
-                      ? 'bg-slate-700 text-white'
-                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,7 +118,7 @@ export default function Sidebar() {
                     />
                   </svg>
                   <span className="truncate">{portfolio.name}</span>
-                  <span className="ml-auto text-xs text-slate-500">{portfolio.image_count}</span>
+                  <span className="ml-auto text-xs text-gray-500 dark:text-gray-500">{portfolio.image_count}</span>
                 </Link>
               ))}
             </div>

@@ -50,18 +50,18 @@ export default function GeneratePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Generate Image</h1>
+      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Generate Image</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Portfolio selection */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Portfolio
           </label>
           <select
             value={selectedPortfolio}
             onChange={(e) => setSelectedPortfolio(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500"
             required
           >
             <option value="">Select a portfolio</option>
@@ -100,7 +100,7 @@ export default function GeneratePage() {
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-300"
+          className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
         >
           <svg
             className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-90' : ''}`}
@@ -115,7 +115,7 @@ export default function GeneratePage() {
 
         {/* Advanced parameters */}
         {showAdvanced && (
-          <div className="p-4 bg-slate-800/50 rounded-lg">
+          <div className="p-4 bg-gray-200/50 dark:bg-gray-800/50 rounded-lg">
             <ParameterControls />
           </div>
         )}

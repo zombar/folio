@@ -1,14 +1,16 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useUIStore } from './uiStore'
 
 describe('uiStore', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     // Reset store state before each test
     useUIStore.setState({
       sidebarOpen: true,
       selectedPortfolioId: null,
       createPortfolioModalOpen: false,
       imageDetailId: null,
+      theme: 'light',
     })
   })
 
@@ -58,5 +60,25 @@ describe('uiStore', () => {
     expect(useUIStore.getState().imageDetailId).toBe('image-456')
     closeImageDetail()
     expect(useUIStore.getState().imageDetailId).toBeNull()
+  })
+
+  it('should toggle theme', () => {
+    const { toggleTheme } = useUIStore.getState()
+
+    expect(useUIStore.getState().theme).toBe('light')
+    toggleTheme()
+    expect(useUIStore.getState().theme).toBe('dark')
+    expect(localStorage.setItem).toHaveBeenCalledWith('theme', 'dark')
+    toggleTheme()
+    expect(useUIStore.getState().theme).toBe('light')
+    expect(localStorage.setItem).toHaveBeenCalledWith('theme', 'light')
+  })
+
+  it('should set theme', () => {
+    const { setTheme } = useUIStore.getState()
+
+    setTheme('dark')
+    expect(useUIStore.getState().theme).toBe('dark')
+    expect(localStorage.setItem).toHaveBeenCalledWith('theme', 'dark')
   })
 })
