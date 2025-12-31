@@ -92,12 +92,6 @@ export default function ImageCard({ generation, onClick, onDelete, onSetCover, i
     </div>
    )}
 
-   {/* Status badge for non-completed */}
-   {generation.status === 'pending' && (
-    <div className="absolute top-2 right-2 px-2 py-1 bg-neutral-200/80 dark:bg-neutral-700/80 text-xs text-neutral-700 dark:text-neutral-300">
-     Queued
-    </div>
-   )}
   </div>
  )
 }

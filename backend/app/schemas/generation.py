@@ -16,7 +16,7 @@ class GenerationCreate(BaseModel):
     workflow_id: Optional[str] = None
     model_filename: Optional[str] = None
     lora_filename: Optional[str] = None
-    quantity: int = Field(default=1, ge=1, le=10)
+    quantity: int = Field(default=1, ge=1, le=25)
 
 
 class GenerationResponse(BaseModel):

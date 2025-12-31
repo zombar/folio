@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { usePortfolio, useDeletePortfolio, useUpdatePortfolio } from '../hooks/usePortfolios'
 import { useGenerations, useDeleteGeneration } from '../hooks/useGenerations'
@@ -15,6 +16,9 @@ export default function PortfolioPage() {
  const deleteGeneration = useDeleteGeneration()
  const updatePortfolio = useUpdatePortfolio()
  const openImageDetail = useUIStore((state) => state.openImageDetail)
+ const [isEditing, setIsEditing] = useState(false)
+ const [editName, setEditName] = useState('')
+ const [editDescription, setEditDescription] = useState('')
 
  const handleDelete = async () => {
   if (confirm(`Delete "${portfolio?.name}"? This will also delete all images in this portfolio.`)) {
@@ -32,6 +36,24 @@ export default function PortfolioPage() {
    id: id!,
    data: { cover_image_id: generationId }
   })
+ }
+
+ const handleStartEdit = () => {
+  setEditName(portfolio?.name || '')
+  setEditDescription(portfolio?.description || '')
+  setIsEditing(true)
+ }
+
+ const handleSaveEdit = async () => {
+  await updatePortfolio.mutateAsync({
+   id: id!,
+   data: { name: editName, description: editDescription || undefined }
+  })
+  setIsEditing(false)
+ }
+
+ const handleCancelEdit = () => {
+  setIsEditing(false)
  }
 
  if (portfolioLoading) {
@@ -56,10 +78,46 @@ export default function PortfolioPage() {
  return (
   <div>
    <div className="flex items-start justify-between mb-6">
-    <div>
-     <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{portfolio.name}</h1>
-     {portfolio.description && (
-      <p className="text-neutral-500 dark:text-neutral-400 mt-1">{portfolio.description}</p>
+    <div className="flex-1 mr-4">
+     {isEditing ? (
+      <div className="space-y-2">
+       <input
+        type="text"
+        value={editName}
+        onChange={(e) => setEditName(e.target.value)}
+        className="w-full text-2xl font-bold bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 px-2 py-1 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-500"
+        placeholder="Portfolio name"
+       />
+       <input
+        type="text"
+        value={editDescription}
+        onChange={(e) => setEditDescription(e.target.value)}
+        className="w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 px-2 py-1 text-neutral-500 dark:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-500"
+        placeholder="Description (optional)"
+       />
+       <div className="flex gap-2">
+        <Button size="sm" onClick={handleSaveEdit} loading={updatePortfolio.isPending}>Save</Button>
+        <Button size="sm" variant="ghost" onClick={handleCancelEdit}>Cancel</Button>
+       </div>
+      </div>
+     ) : (
+      <div className="group">
+       <div className="flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{portfolio.name}</h1>
+        <button
+         onClick={handleStartEdit}
+         className="p-1 opacity-0 group-hover:opacity-100 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-opacity"
+         title="Edit portfolio"
+        >
+         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+         </svg>
+        </button>
+       </div>
+       {portfolio.description && (
+        <p className="text-neutral-500 dark:text-neutral-400 mt-1">{portfolio.description}</p>
+       )}
+      </div>
      )}
     </div>
     <div className="flex gap-2">

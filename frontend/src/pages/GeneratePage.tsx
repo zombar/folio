@@ -153,14 +153,14 @@ export default function GeneratePage() {
      <input
       type="range"
       min={1}
-      max={10}
+      max={25}
       value={quantity}
       onChange={(e) => setQuantity(Number(e.target.value))}
       className="w-full h-2 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-neutral-900 dark:accent-neutral-100"
      />
      <div className="flex justify-between text-xs text-neutral-400 mt-1">
       <span>1</span>
-      <span>10</span>
+      <span>25</span>
      </div>
     </div>
 
