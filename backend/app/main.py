@@ -1,15 +1,48 @@
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
+
+from alembic import command
+from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.database import create_tables, SessionLocal
+from app.database import SessionLocal
 from app.api import portfolios, generations, images, events, health, models, workflows
 from app.services.builtin_workflows import seed_builtin_workflows
 from app.services.job_queue import init_job_queue, JobType, Job
 from app.services.generation_service import process_generation_job
 from app.services.animation_processor import process_animation_job
+
+logger = logging.getLogger(__name__)
+
+
+def run_migrations():
+    """Run alembic migrations on startup.
+
+    Handles existing databases by stamping the baseline if tables exist
+    but alembic_version doesn't.
+    """
+    from sqlalchemy import inspect
+    from app.database import engine
+
+    alembic_cfg = Config(Path(__file__).parent.parent / "alembic.ini")
+    alembic_cfg.set_main_option(
+        "script_location", str(Path(__file__).parent.parent / "alembic")
+    )
+
+    # Check if this is an existing database without alembic tracking
+    inspector = inspect(engine)
+    tables = inspector.get_table_names()
+
+    if "portfolios" in tables and "alembic_version" not in tables:
+        # Existing database without alembic - stamp with baseline
+        logger.info("Existing database detected, stamping baseline...")
+        command.stamp(alembic_cfg, "922a42abde2d")
+
+    # Run any pending migrations
+    command.upgrade(alembic_cfg, "head")
 
 
 async def process_job(job: Job):
@@ -23,8 +56,10 @@ async def process_job(job: Job):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
-    # Startup: create database tables
-    create_tables()
+    # Startup: run database migrations
+    logger.info("Running database migrations...")
+    run_migrations()
+    logger.info("Database migrations complete.")
 
     # Seed built-in workflows
     db = SessionLocal()
