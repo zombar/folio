@@ -263,7 +263,7 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
         icon: DeleteIcon,
         tooltip: 'Delete',
         onClick: handleDelete,
-        variant: 'danger' as const,
+        variant: 'default' as const,
       },
       { type: 'divider' as const },
       {
