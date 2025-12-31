@@ -42,14 +42,14 @@ export default function HistoryPage() {
   )
  }
 
- // Sort: processing first, then by created_at descending (most recent first)
+ // Sort: processing first, then completed by date, then pending, then failed
  const sortedGenerations = [...(generations ?? [])].sort((a, b) => {
   // Processing items come first
   if (a.status === 'processing' && b.status !== 'processing') return -1
   if (b.status === 'processing' && a.status !== 'processing') return 1
-  // Then pending items
-  if (a.status === 'pending' && b.status !== 'pending' && b.status !== 'processing') return -1
-  if (b.status === 'pending' && a.status !== 'pending' && a.status !== 'processing') return 1
+  // Then completed items
+  if (a.status === 'completed' && b.status !== 'completed' && b.status !== 'processing') return -1
+  if (b.status === 'completed' && a.status !== 'completed' && a.status !== 'processing') return 1
   // Then sort by created_at descending
   return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
  })
@@ -131,17 +131,17 @@ export default function HistoryPage() {
        </div>
 
        {/* Links */}
-       <div className="flex items-center gap-3 flex-shrink-0">
+       <div className="flex items-center gap-2 flex-shrink-0">
         <Link
          to={`/portfolio/${generation.portfolio_id}`}
-         className="text-xs text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:underline"
+         className="px-3 py-1.5 text-sm font-medium border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
         >
          {portfolioMap.get(generation.portfolio_id) || 'Portfolio'}
         </Link>
         {generation.status === 'completed' && (
          <Link
           to={`/portfolio/${generation.portfolio_id}/image/${generation.id}`}
-          className="text-xs text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:underline"
+          className="px-3 py-1.5 text-sm font-medium border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
          >
           View
          </Link>
