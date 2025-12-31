@@ -44,7 +44,7 @@ export default function WorkflowCard({ workflow, onEdit, onDelete }: WorkflowCar
           {onDelete && (
             <button
               onClick={onDelete}
-              className="text-sm text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
             >
               Delete
             </button>

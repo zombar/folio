@@ -27,7 +27,7 @@ export default function ImageCard({ generation, onClick }: ImageCardProps) {
           <span className="text-sm text-gray-500 dark:text-gray-400">{generation.progress}%</span>
         </div>
       ) : generation.status === 'failed' ? (
-        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800 text-red-500 dark:text-red-400">
+        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
           <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"

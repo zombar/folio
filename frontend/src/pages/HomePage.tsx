@@ -17,7 +17,7 @@ export default function HomePage() {
 
   if (error) {
     return (
-      <div className="text-red-600 dark:text-red-400 p-4 bg-red-100 dark:bg-red-900/20 rounded-lg">
+      <div className="text-gray-700 dark:text-gray-300 p-4 bg-gray-200 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600">
         Error loading portfolios: {error.message}
       </div>
     )

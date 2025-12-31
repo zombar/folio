@@ -31,7 +31,7 @@ export default function WorkflowSelector({ value, onChange }: WorkflowSelectorPr
         ))}
       </select>
       {error && (
-        <p className="mt-1 text-sm text-red-500 dark:text-red-400">Failed to load workflows</p>
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Failed to load workflows</p>
       )}
     </div>
   )
