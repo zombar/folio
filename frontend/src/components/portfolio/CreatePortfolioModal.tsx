@@ -1,17 +1,27 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Modal, Button, Input, Textarea } from '../ui'
 import { useUIStore } from '../../stores/uiStore'
-import { useCreatePortfolio } from '../../hooks/usePortfolios'
+import { useCreatePortfolio, usePortfolios } from '../../hooks/usePortfolios'
 
 export default function CreatePortfolioModal() {
  const navigate = useNavigate()
  const isOpen = useUIStore((state) => state.createPortfolioModalOpen)
  const closeModal = useUIStore((state) => state.closeCreatePortfolioModal)
  const createPortfolio = useCreatePortfolio()
+ const { data: portfolios } = usePortfolios()
 
  const [name, setName] = useState('')
  const [description, setDescription] = useState('')
+
+ // Set defaults when modal opens
+ useEffect(() => {
+  if (isOpen) {
+   const portfolioCount = portfolios?.length ?? 0
+   setName(`Portfolio #${portfolioCount + 1}`)
+   setDescription('Having a fun time with Folio!')
+  }
+ }, [isOpen, portfolios?.length])
 
  const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault()
