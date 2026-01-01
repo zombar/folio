@@ -24,7 +24,7 @@ def run_migrations():
     Handles existing databases by stamping the baseline if tables exist
     but alembic_version doesn't.
     """
-    from sqlalchemy import inspect
+    from sqlalchemy import inspect, text
     from app.database import engine
 
     alembic_cfg = Config(Path(__file__).parent.parent / "alembic.ini")
@@ -32,7 +32,6 @@ def run_migrations():
         "script_location", str(Path(__file__).parent.parent / "alembic")
     )
 
-    # Check if this is an existing database without alembic tracking
     inspector = inspect(engine)
     tables = inspector.get_table_names()
 
@@ -40,6 +39,17 @@ def run_migrations():
         # Existing database without alembic - stamp with baseline
         logger.info("Existing database detected, stamping baseline...")
         command.stamp(alembic_cfg, "922a42abde2d")
+
+    # Check if schema is out of sync (migration ran but columns missing)
+    if "generations" in tables:
+        columns = set(c['name'] for c in inspector.get_columns('generations'))
+        required = {'generation_type', 'source_generation_id', 'video_path'}
+        if not required.issubset(columns) and "alembic_version" in tables:
+            # Schema out of sync - reset to baseline to re-run migrations
+            logger.info("Schema out of sync, resetting alembic to baseline...")
+            with engine.connect() as conn:
+                conn.execute(text("UPDATE alembic_version SET version_num = '922a42abde2d'"))
+                conn.commit()
 
     # Run any pending migrations
     command.upgrade(alembic_cfg, "head")
