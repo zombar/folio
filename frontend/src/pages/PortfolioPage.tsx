@@ -192,7 +192,7 @@ export default function PortfolioPage() {
     </div>
    ) : (
     <ImageGrid
-     generations={generations}
+     generations={generations ?? []}
      onImageClick={handleImageClick}
      onImageDelete={handleImageDelete}
      onSetCover={handleSetCover}

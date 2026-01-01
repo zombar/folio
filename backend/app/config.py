@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List
+from typing import List, Optional
 
 
 class Settings(BaseSettings):
@@ -19,6 +19,12 @@ class Settings(BaseSettings):
 
     # CORS
     cors_origins: List[str] = ["http://localhost:5173", "http://localhost:3000"]
+
+    # SGLang
+    sglang_host: str = "localhost"
+    sglang_port: int = 30000
+    default_model: str = "meta-llama/Llama-3.2-1B-Instruct"
+    hf_token: Optional[str] = None
 
     # Testing
     testing: bool = False

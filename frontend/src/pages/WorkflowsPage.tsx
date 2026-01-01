@@ -26,6 +26,14 @@ export default function WorkflowsPage() {
   }
  }
 
+ const handleSubmit = async (data: WorkflowCreate | WorkflowUpdate) => {
+  if (editingWorkflow) {
+   await handleUpdate(data as WorkflowUpdate)
+  } else {
+   await handleCreate(data as WorkflowCreate)
+  }
+ }
+
  const handleDelete = async (id: string) => {
   if (confirm('Are you sure you want to delete this workflow?')) {
    await deleteWorkflow.mutateAsync(id)
@@ -110,7 +118,7 @@ export default function WorkflowsPage() {
    <WorkflowModal
     isOpen={isModalOpen}
     onClose={handleModalClose}
-    onSubmit={editingWorkflow ? handleUpdate : handleCreate}
+    onSubmit={handleSubmit}
     workflow={editingWorkflow}
     isLoading={createWorkflow.isPending || updateWorkflow.isPending}
    />

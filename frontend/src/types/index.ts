@@ -124,3 +124,39 @@ export interface WorkflowUpdate {
   workflow_json?: Record<string, unknown>
   category?: string
 }
+
+// Chat types
+export type MessageRole = 'user' | 'assistant' | 'system'
+
+export interface Message {
+  id: string
+  conversation_id: string
+  role: MessageRole
+  content: string
+  created_at: string
+}
+
+export interface Conversation {
+  id: string
+  title: string | null
+  model: string
+  created_at: string
+  updated_at: string
+  message_count: number
+}
+
+export interface ConversationWithMessages extends Conversation {
+  messages: Message[]
+}
+
+export interface ChatStatus {
+  model_id: string | null
+  status: 'loading' | 'ready' | 'error' | 'stopped'
+  error: string | null
+}
+
+export interface ChatStreamChunk {
+  content: string
+  done: boolean
+  error?: string
+}
