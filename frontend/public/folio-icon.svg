@@ -1,11 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <!-- Felt-tip pen with brushstroke - traced from felt-pen-icon.png -->
-  <g fill="#171717" stroke="#171717" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <g fill="#171717" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <!-- Pen body - tilted marker -->
     <rect x="30" y="2" width="8" height="32" rx="4" ry="4" transform="rotate(40 34 18)"/>
     <!-- Pen cap/grip section -->
     <rect x="14" y="32" width="8" height="10" rx="2" ry="2" transform="rotate(40 18 37)"/>
-    <!-- Curved brushstroke swoosh -->
-    <path d="M6 50 Q10 42 18 44 Q32 48 50 54 Q56 56 58 54" fill="none" stroke-width="3"/>
+    <!-- Curved brushstroke swoosh - white outline behind, dark stroke on top -->
+    <path d="M6 50 Q10 42 18 44 Q32 48 50 54 Q56 56 58 54" fill="none" stroke="#ffffff" stroke-width="5"/>
+    <path d="M6 50 Q10 42 18 44 Q32 48 50 54 Q56 56 58 54" fill="none" stroke="#171717" stroke-width="3"/>
   </g>
 </svg>
