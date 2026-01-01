@@ -1,5 +1,5 @@
 # SGLang server with AMD ROCm support
-FROM rocm/pytorch:rocm6.0_ubuntu22.04_py3.10_pytorch_2.1.1
+FROM rocm/pytorch:rocm6.0.2_ubuntu22.04_py3.10_pytorch_2.1.2
 
 # Install additional dependencies
 RUN apt-get update && apt-get install -y \
