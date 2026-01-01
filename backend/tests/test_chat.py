@@ -2,8 +2,8 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.services.chat_service import ChatService
-from app.services.sglang_client import SGLangClient
-from app.services.sglang_manager import SGLangManager
+from app.services.ollama_client import OllamaClient
+from app.services.ollama_manager import OllamaManager
 from app.models.chat import MessageRole
 from app.schemas.chat import ConversationCreate, ConversationUpdate
 
@@ -14,11 +14,11 @@ class TestChatService:
     def test_create_conversation(self, db_session):
         """Test creating a new conversation."""
         service = ChatService(db_session)
-        data = ConversationCreate(model="meta-llama/Llama-3.2-1B-Instruct")
+        data = ConversationCreate(model="llama3.2:1b")
 
         result = service.create_conversation(data)
 
-        assert result.model == "meta-llama/Llama-3.2-1B-Instruct"
+        assert result.model == "llama3.2:1b"
         assert result.title is None
         assert result.message_count == 0
         assert result.id is not None
@@ -27,7 +27,7 @@ class TestChatService:
         """Test creating a conversation with a title."""
         service = ChatService(db_session)
         data = ConversationCreate(
-            model="meta-llama/Llama-3.2-1B-Instruct", title="Test Chat"
+            model="llama3.2:1b", title="Test Chat"
         )
 
         result = service.create_conversation(data)
@@ -254,19 +254,20 @@ class TestChatService:
         assert service.get_conversation(conv.id) is None
 
 
-class TestSGLangClient:
-    """Tests for SGLangClient with mocked HTTP responses."""
+class TestOllamaClient:
+    """Tests for OllamaClient with mocked HTTP responses."""
 
     def test_base_url(self):
         """Test base URL construction from settings."""
-        client = SGLangClient()
-        assert "localhost" in client.base_url
-        assert "30000" in client.base_url
+        client = OllamaClient()
+        # Base URL should be constructed from settings
+        assert client.base_url.startswith("http://")
+        assert "11434" in client.base_url or ":11434" in client.base_url
 
     @pytest.mark.asyncio
     async def test_check_health_success(self):
         """Test health check when server is responding."""
-        client = SGLangClient()
+        client = OllamaClient()
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
@@ -284,7 +285,7 @@ class TestSGLangClient:
     @pytest.mark.asyncio
     async def test_check_health_failure(self):
         """Test health check when server is not responding."""
-        client = SGLangClient()
+        client = OllamaClient()
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
@@ -300,7 +301,7 @@ class TestSGLangClient:
     @pytest.mark.asyncio
     async def test_check_health_non_200_status(self):
         """Test health check with non-200 response."""
-        client = SGLangClient()
+        client = OllamaClient()
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
@@ -317,12 +318,12 @@ class TestSGLangClient:
 
     @pytest.mark.asyncio
     async def test_list_models(self):
-        """Test listing models from SGLang."""
-        client = SGLangClient()
+        """Test listing models from Ollama."""
+        client = OllamaClient()
 
         mock_response_data = {
-            "data": [
-                {"id": "meta-llama/Llama-3.2-1B-Instruct", "object": "model"}
+            "models": [
+                {"name": "llama3.2:1b", "size": 1234567890}
             ]
         }
 
@@ -339,14 +340,14 @@ class TestSGLangClient:
             result = await client.list_models()
 
             assert len(result) == 1
-            assert result[0]["id"] == "meta-llama/Llama-3.2-1B-Instruct"
+            assert result[0]["name"] == "llama3.2:1b"
 
     @pytest.mark.asyncio
     async def test_list_models_empty(self):
         """Test listing models when no models available."""
-        client = SGLangClient()
+        client = OllamaClient()
 
-        mock_response_data = {"data": []}
+        mock_response_data = {"models": []}
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
@@ -363,9 +364,55 @@ class TestSGLangClient:
             assert result == []
 
     @pytest.mark.asyncio
+    async def test_has_model_true(self):
+        """Test has_model returns True when model exists."""
+        client = OllamaClient()
+
+        mock_response_data = {
+            "models": [{"name": "llama3.2:1b"}]
+        }
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_response = MagicMock()
+            mock_response.json.return_value = mock_response_data
+            mock_response.raise_for_status = MagicMock()
+            mock_client.get = AsyncMock(return_value=mock_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            result = await client.has_model("llama3.2:1b")
+
+            assert result is True
+
+    @pytest.mark.asyncio
+    async def test_has_model_false(self):
+        """Test has_model returns False when model doesn't exist."""
+        client = OllamaClient()
+
+        mock_response_data = {
+            "models": [{"name": "llama3.2:1b"}]
+        }
+
+        with patch("httpx.AsyncClient") as mock_client_class:
+            mock_client = AsyncMock()
+            mock_response = MagicMock()
+            mock_response.json.return_value = mock_response_data
+            mock_response.raise_for_status = MagicMock()
+            mock_client.get = AsyncMock(return_value=mock_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_client_class.return_value = mock_client
+
+            result = await client.has_model("mistral:7b")
+
+            assert result is False
+
+    @pytest.mark.asyncio
     async def test_chat_stream(self):
         """Test streaming chat completion."""
-        client = SGLangClient()
+        client = OllamaClient()
 
         # Simulate SSE stream chunks
         async def mock_aiter_lines():
@@ -396,7 +443,7 @@ class TestSGLangClient:
     @pytest.mark.asyncio
     async def test_chat_stream_empty_content(self):
         """Test streaming handles empty content chunks."""
-        client = SGLangClient()
+        client = OllamaClient()
 
         async def mock_aiter_lines():
             yield 'data: {"choices":[{"delta":{}}]}'  # No content
@@ -426,7 +473,7 @@ class TestSGLangClient:
     @pytest.mark.asyncio
     async def test_chat_non_streaming(self):
         """Test non-streaming chat completion."""
-        client = SGLangClient()
+        client = OllamaClient()
 
         mock_response_data = {
             "choices": [{"message": {"content": "Hello, how can I help?"}}]
@@ -449,12 +496,12 @@ class TestSGLangClient:
             assert result == "Hello, how can I help?"
 
 
-class TestSGLangManager:
-    """Tests for SGLangManager process management."""
+class TestOllamaManager:
+    """Tests for OllamaManager model management."""
 
     def test_initial_state(self):
         """Test manager starts in stopped state."""
-        manager = SGLangManager()
+        manager = OllamaManager()
 
         assert manager.status == "stopped"
         assert manager.current_model is None
@@ -462,7 +509,7 @@ class TestSGLangManager:
 
     def test_get_status(self):
         """Test getting status as dict."""
-        manager = SGLangManager()
+        manager = OllamaManager()
 
         status = manager.get_status()
 
@@ -474,62 +521,15 @@ class TestSGLangManager:
 
     def test_base_url(self):
         """Test base URL construction from settings."""
-        manager = SGLangManager()
-        assert "localhost" in manager.base_url
-        assert "30000" in manager.base_url
+        manager = OllamaManager()
+        # Base URL should be constructed from settings
+        assert manager.base_url.startswith("http://")
+        assert "11434" in manager.base_url or ":11434" in manager.base_url
 
     @pytest.mark.asyncio
-    async def test_is_ready_when_stopped(self):
-        """Test is_ready returns False when stopped."""
-        manager = SGLangManager()
-
-        result = await manager.is_ready()
-
-        assert result is False
-
-    @pytest.mark.asyncio
-    async def test_stop_server_when_not_running(self):
-        """Test stopping server when nothing is running."""
-        manager = SGLangManager()
-
-        # Should not raise
-        await manager.stop_server()
-
-        assert manager.status == "stopped"
-
-    @pytest.mark.asyncio
-    async def test_switch_model_same_model_when_ready(self):
-        """Test switching to same model when already ready returns True."""
-        manager = SGLangManager()
-        manager._current_model = "test-model"
-        manager._status = "ready"
-
-        # Mock the start_server to track if it's called
-        with patch.object(manager, "start_server", new_callable=AsyncMock) as mock_start:
-            result = await manager.switch_model("test-model")
-
-            assert result is True
-            mock_start.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_switch_model_different_model(self):
-        """Test switching to different model calls start_server."""
-        manager = SGLangManager()
-        manager._current_model = "model1"
-        manager._status = "ready"
-
-        with patch.object(
-            manager, "start_server", new_callable=AsyncMock, return_value=True
-        ) as mock_start:
-            result = await manager.switch_model("model2")
-
-            assert result is True
-            mock_start.assert_called_once_with("model2")
-
-    @pytest.mark.asyncio
-    async def test_check_health_internal(self):
-        """Test internal health check."""
-        manager = SGLangManager()
+    async def test_check_server_success(self):
+        """Test server check when Ollama is responding."""
+        manager = OllamaManager()
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
@@ -540,14 +540,14 @@ class TestSGLangManager:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             mock_client_class.return_value = mock_client
 
-            result = await manager._check_health()
+            result = await manager.check_server()
 
             assert result is True
 
     @pytest.mark.asyncio
-    async def test_check_health_failure(self):
-        """Test health check when server is down."""
-        manager = SGLangManager()
+    async def test_check_server_failure(self):
+        """Test server check when Ollama is down."""
+        manager = OllamaManager()
 
         with patch("httpx.AsyncClient") as mock_client_class:
             mock_client = AsyncMock()
@@ -556,9 +556,139 @@ class TestSGLangManager:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             mock_client_class.return_value = mock_client
 
-            result = await manager._check_health()
+            result = await manager.check_server()
 
             assert result is False
+
+    @pytest.mark.asyncio
+    async def test_has_model_true(self):
+        """Test has_model when model exists."""
+        manager = OllamaManager()
+
+        with patch.object(manager, "list_models", new_callable=AsyncMock) as mock_list:
+            mock_list.return_value = [{"name": "llama3.2:1b"}]
+
+            result = await manager.has_model("llama3.2:1b")
+
+            assert result is True
+
+    @pytest.mark.asyncio
+    async def test_has_model_with_latest_tag(self):
+        """Test has_model matches model with :latest tag."""
+        manager = OllamaManager()
+
+        with patch.object(manager, "list_models", new_callable=AsyncMock) as mock_list:
+            mock_list.return_value = [{"name": "llama3.2:latest"}]
+
+            result = await manager.has_model("llama3.2")
+
+            assert result is True
+
+    @pytest.mark.asyncio
+    async def test_has_model_false(self):
+        """Test has_model when model doesn't exist."""
+        manager = OllamaManager()
+
+        with patch.object(manager, "list_models", new_callable=AsyncMock) as mock_list:
+            mock_list.return_value = [{"name": "llama3.2:1b"}]
+
+            result = await manager.has_model("mistral:7b")
+
+            assert result is False
+
+    @pytest.mark.asyncio
+    async def test_is_ready_when_stopped(self):
+        """Test is_ready returns False when stopped and server not available."""
+        manager = OllamaManager()
+
+        with patch.object(manager, "check_server", new_callable=AsyncMock) as mock_check:
+            mock_check.return_value = False
+
+            result = await manager.is_ready()
+
+            assert result is False
+
+    @pytest.mark.asyncio
+    async def test_is_ready_when_ready(self):
+        """Test is_ready returns True when status is ready and server available."""
+        manager = OllamaManager()
+        manager._status = "ready"
+
+        with patch.object(manager, "check_server", new_callable=AsyncMock) as mock_check:
+            mock_check.return_value = True
+
+            result = await manager.is_ready()
+
+            assert result is True
+
+    @pytest.mark.asyncio
+    async def test_switch_model_same_model_when_ready(self):
+        """Test switching to same model when already ready returns True."""
+        manager = OllamaManager()
+        manager._current_model = "llama3.2:1b"
+        manager._status = "ready"
+
+        result = await manager.switch_model("llama3.2:1b")
+
+        assert result is True
+        assert manager.status == "ready"
+
+    @pytest.mark.asyncio
+    async def test_switch_model_server_not_available(self):
+        """Test switch_model fails when server is not available."""
+        manager = OllamaManager()
+
+        with patch.object(manager, "check_server", new_callable=AsyncMock) as mock_check:
+            mock_check.return_value = False
+
+            result = await manager.switch_model("llama3.2:1b")
+
+            assert result is False
+            assert manager.status == "error"
+            assert "not available" in manager.error
+
+    @pytest.mark.asyncio
+    async def test_switch_model_pulls_if_not_exists(self):
+        """Test switch_model pulls model if not available locally."""
+        manager = OllamaManager()
+
+        with patch.object(manager, "check_server", new_callable=AsyncMock) as mock_check:
+            mock_check.return_value = True
+
+            with patch.object(manager, "has_model", new_callable=AsyncMock) as mock_has:
+                # First call: model doesn't exist, second call: model exists after pull
+                mock_has.side_effect = [False, True]
+
+                with patch("httpx.AsyncClient") as mock_client_class:
+                    mock_client = AsyncMock()
+                    mock_response = MagicMock()
+                    mock_response.raise_for_status = MagicMock()
+                    mock_client.post = AsyncMock(return_value=mock_response)
+                    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+                    mock_client.__aexit__ = AsyncMock(return_value=None)
+                    mock_client_class.return_value = mock_client
+
+                    result = await manager.switch_model("llama3.2:1b")
+
+                    assert result is True
+                    assert manager.status == "ready"
+                    assert manager.current_model == "llama3.2:1b"
+
+    @pytest.mark.asyncio
+    async def test_switch_model_already_exists(self):
+        """Test switch_model succeeds immediately if model exists."""
+        manager = OllamaManager()
+
+        with patch.object(manager, "check_server", new_callable=AsyncMock) as mock_check:
+            mock_check.return_value = True
+
+            with patch.object(manager, "has_model", new_callable=AsyncMock) as mock_has:
+                mock_has.return_value = True
+
+                result = await manager.switch_model("llama3.2:1b")
+
+                assert result is True
+                assert manager.status == "ready"
 
 
 class TestChatAPI:
@@ -574,11 +704,11 @@ class TestChatAPI:
         """Test creating a new conversation."""
         response = client.post(
             "/api/conversations",
-            json={"model": "meta-llama/Llama-3.2-1B-Instruct"},
+            json={"model": "llama3.2:1b"},
         )
         assert response.status_code == 201
         data = response.json()
-        assert data["model"] == "meta-llama/Llama-3.2-1B-Instruct"
+        assert data["model"] == "llama3.2:1b"
         assert "id" in data
 
     def test_create_conversation_with_title(self, client):
@@ -692,32 +822,3 @@ class TestChatAPI:
         data = response.json()
         assert "status" in data
         assert data["status"] in ["loading", "ready", "error", "stopped"]
-
-    def test_get_setup_status(self, client):
-        """Test getting setup status."""
-        response = client.get("/api/chat/setup")
-        assert response.status_code == 200
-        data = response.json()
-        assert "hf_token_set" in data
-        assert "default_model" in data
-        assert "status" in data
-
-    def test_post_setup(self, client, tmp_path, monkeypatch):
-        """Test setting up HF token."""
-        # Mock storage path to use temp directory
-        monkeypatch.setattr("app.config.settings.storage_path", str(tmp_path / "storage"))
-
-        # Mock the sglang_manager to avoid actually starting a server
-        with patch("app.api.chat.sglang_manager") as mock_manager:
-            mock_manager.start_server = AsyncMock(return_value=True)
-            mock_manager.status = "loading"
-
-            response = client.post(
-                "/api/chat/setup",
-                json={"hf_token": "hf_test_token_123"},
-            )
-
-            assert response.status_code == 200
-            data = response.json()
-            assert data["hf_token_set"] is True
-            assert "default_model" in data

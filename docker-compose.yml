@@ -77,36 +77,32 @@ services:
       - video
       - render
 
-  # SGLang LLM Server - CPU profile (slow, for testing only)
-  sglang:
-    build: ./docker/sglang-cpu
+  # Ollama LLM Server - CPU profile
+  ollama:
+    image: ollama/ollama
     ports:
-      - "30000:30000"
+      - "11434:11434"
     volumes:
-      - ./storage/huggingface:/root/.cache/huggingface
-    environment:
-      - HF_TOKEN=${HF_TOKEN:-}
+      - ./storage/ollama:/root/.ollama
     profiles:
       - cpu
-    command: ["python", "-m", "sglang.launch_server", "--host", "0.0.0.0", "--port", "30000", "--model-path", "${SGLANG_MODEL:-meta-llama/Llama-3.2-1B-Instruct}"]
 
-  # SGLang LLM Server - NVIDIA GPU profile
-  sglang-nvidia:
-    build: ./docker/sglang
+  # Ollama LLM Server - NVIDIA GPU profile
+  ollama-nvidia:
+    image: ollama/ollama
     runtime: nvidia
     profiles:
       - gpu
     ports:
-      - "30000:30000"
+      - "11434:11434"
     volumes:
-      - ./storage/huggingface:/root/.cache/huggingface
+      - ./storage/ollama:/root/.ollama
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
-      - HF_TOKEN=${HF_TOKEN:-}
     networks:
       default:
         aliases:
-          - sglang
+          - ollama
     deploy:
       resources:
         reservations:
@@ -114,30 +110,26 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    command: ["python", "-m", "sglang.launch_server", "--host", "0.0.0.0", "--port", "30000", "--model-path", "${SGLANG_MODEL:-meta-llama/Llama-3.2-1B-Instruct}"]
 
-  # SGLang LLM Server - AMD ROCm profile
-  sglang-rocm:
-    build: ./docker/sglang-rocm
+  # Ollama LLM Server - AMD ROCm profile
+  ollama-rocm:
+    image: ollama/ollama:rocm
     profiles:
       - rocm
     ports:
-      - "30000:30000"
+      - "11434:11434"
     volumes:
-      - ./storage/huggingface:/root/.cache/huggingface
-    environment:
-      - HF_TOKEN=${HF_TOKEN:-}
+      - ./storage/ollama:/root/.ollama
     networks:
       default:
         aliases:
-          - sglang
+          - ollama
     devices:
       - /dev/kfd
       - /dev/dri
     group_add:
       - video
       - render
-    command: ["python", "-m", "sglang.launch_server", "--host", "0.0.0.0", "--port", "30000", "--model-path", "${SGLANG_MODEL:-meta-llama/Llama-3.2-1B-Instruct}"]
 
   backend:
     build: ./backend
@@ -153,7 +145,8 @@ services:
       - STORAGE_PATH=/app/storage
       - DATABASE_URL=sqlite:///./data/folio.db
       - MODELS_PATH=/app/models
-      - HF_TOKEN=${HF_TOKEN:-}
+      - OLLAMA_HOST=ollama
+      - OLLAMA_PORT=11434
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8010", "--reload"]
 
   frontend:

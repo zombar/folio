@@ -83,22 +83,3 @@ export function useDeleteConversation() {
     },
   })
 }
-
-export function useSetupStatus() {
-  return useQuery({
-    queryKey: ['chat-setup'],
-    queryFn: chatApi.getSetupStatus,
-  })
-}
-
-export function useSetup() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: chatApi.setup,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chat-setup'] })
-      queryClient.invalidateQueries({ queryKey: ['chat-status'] })
-    },
-  })
-}

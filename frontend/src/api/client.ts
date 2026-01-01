@@ -10,7 +10,6 @@ import type {
   Conversation,
   ConversationWithMessages,
   ChatStatus,
-  SetupStatus,
 } from '../types'
 
 const api = axios.create({
@@ -178,16 +177,5 @@ export const chatApi = {
 
   deleteConversation: async (id: string): Promise<void> => {
     await api.delete(`/conversations/${id}`)
-  },
-
-  // Setup
-  getSetupStatus: async (): Promise<SetupStatus> => {
-    const response = await api.get('/chat/setup')
-    return response.data
-  },
-
-  setup: async (hfToken: string): Promise<SetupStatus> => {
-    const response = await api.post('/chat/setup', { hf_token: hfToken })
-    return response.data
   },
 }

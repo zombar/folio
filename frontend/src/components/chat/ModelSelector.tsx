@@ -44,7 +44,7 @@ export default function ModelSelector({ currentModel }: ModelSelectorProps) {
           type="text"
           value={modelInput}
           onChange={(e) => setModelInput(e.target.value)}
-          placeholder="model-id"
+          placeholder="llama3.2:1b"
           disabled={isLoading}
           className="w-40 px-2 py-1 text-xs font-mono bg-transparent border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-neutral-500 dark:focus:border-neutral-400 disabled:opacity-50"
           onKeyDown={(e) => {

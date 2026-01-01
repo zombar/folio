@@ -4,29 +4,24 @@ import {
   useConversation,
   useCreateConversation,
   useChatStatus,
-  useSetupStatus,
 } from '../hooks/useChat'
 import { useChatStream } from '../hooks/useChatStream'
 import { useChatStore } from '../stores/chatStore'
 import { MessageList, ChatInput, ModelSelector } from '../components/chat'
 import { Button } from '../components/ui'
 
-// Notification bar for chat issues (same styling as 500 error display)
-function NotificationBar({ setupStatus }: { setupStatus: { hf_token_set: boolean; status: string; default_model?: string } | undefined }) {
-  if (!setupStatus) return null
+// Notification bar for chat issues
+function NotificationBar({ status }: { status: { model_id: string | null; status: string; error?: string | null } | undefined }) {
+  if (!status) return null
 
   const issues: string[] = []
 
-  if (!setupStatus.hf_token_set) {
-    issues.push('HuggingFace token not configured. Set HF_TOKEN in .env to use gated models.')
-  }
-
-  if (setupStatus.status === 'loading') {
+  if (status.status === 'loading') {
     issues.push('Model is loading...')
-  } else if (setupStatus.status === 'error') {
-    issues.push('LLM server error. Check that the sglang service is running.')
-  } else if (setupStatus.status !== 'ready') {
-    issues.push(`LLM server not ready (status: ${setupStatus.status})`)
+  } else if (status.status === 'error') {
+    issues.push(`LLM server error: ${status.error || 'Check that the ollama service is running.'}`)
+  } else if (status.status === 'stopped') {
+    issues.push('No model loaded. Select a model to get started.')
   }
 
   if (issues.length === 0) return null
@@ -46,7 +41,6 @@ export default function ChatPage() {
 
   const { data: conversation, isLoading } = useConversation(id || null)
   const { data: status } = useChatStatus()
-  const { data: setupStatus } = useSetupStatus()
   const createConversation = useCreateConversation()
   const { sendMessage } = useChatStream(id || null)
 
@@ -60,7 +54,7 @@ export default function ChatPage() {
   }, [id, selectConversation, clearStreamingContent])
 
   const handleNewConversation = async () => {
-    const model = status?.model_id || 'meta-llama/Llama-3.2-1B-Instruct'
+    const model = status?.model_id || 'llama3.2:1b'
 
     const conv = await createConversation.mutateAsync({ model })
     navigate(`/chat/${conv.id}`)
@@ -70,7 +64,7 @@ export default function ChatPage() {
     // No conversation selected - show empty state (matching portfolio empty state)
     return (
       <div className="h-full flex flex-col">
-        <NotificationBar setupStatus={setupStatus} />
+        <NotificationBar status={status} />
         <div className="flex-1 flex flex-col items-center justify-center">
           <div className="text-center py-16">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center">
@@ -113,7 +107,7 @@ export default function ChatPage() {
   return (
     <div className="h-full flex flex-col bg-white dark:bg-neutral-900">
       {/* Notification bar for issues */}
-      <NotificationBar setupStatus={setupStatus} />
+      <NotificationBar status={status} />
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 dark:border-neutral-700">

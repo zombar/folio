@@ -160,9 +160,3 @@ export interface ChatStreamChunk {
   done: boolean
   error?: string
 }
-
-export interface SetupStatus {
-  hf_token_set: boolean
-  default_model: string
-  status: 'loading' | 'ready' | 'error' | 'stopped'
-}
