@@ -153,10 +153,6 @@ services:
       - STORAGE_PATH=/app/storage
       - DATABASE_URL=sqlite:///./data/folio.db
       - MODELS_PATH=/app/models
-      - SGLANG_HOST=sglang
-      - SGLANG_PORT=30000
-      - DEFAULT_MODEL=${SGLANG_MODEL:-meta-llama/Llama-3.2-1B-Instruct}
-      - HF_TOKEN=${HF_TOKEN:-}
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8010", "--reload"]
 
   frontend:
