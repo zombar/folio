@@ -1,0 +1,43 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Type checking
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Database files (use volume mounts instead)
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+
+# Local storage (use volume mounts instead)
+storage/
