@@ -19,6 +19,7 @@ class JobPriority(str, Enum):
 class JobType(str, Enum):
     """Types of jobs that can be queued."""
     GENERATION = "generation"
+    ANIMATION = "animation"
 
 
 @dataclass

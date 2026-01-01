@@ -4,7 +4,9 @@ from typing import List
 
 from app.database import get_db
 from app.schemas.portfolio import PortfolioCreate, PortfolioUpdate, PortfolioResponse
+from app.schemas.generation import GenerationResponse
 from app.services.portfolio_service import PortfolioService
+from app.services.generation_service import GenerationService
 
 router = APIRouter()
 
@@ -62,3 +64,16 @@ async def delete_portfolio(
     success = service.delete(portfolio_id)
     if not success:
         raise HTTPException(status_code=404, detail="Portfolio not found")
+
+
+def get_generation_service(db: Session = Depends(get_db)) -> GenerationService:
+    return GenerationService(db)
+
+
+@router.get("/portfolios/{portfolio_id}/animations", response_model=List[GenerationResponse])
+async def list_portfolio_animations(
+    portfolio_id: str,
+    service: GenerationService = Depends(get_generation_service),
+):
+    """List all completed animations for a portfolio."""
+    return service.list_animations(portfolio_id)

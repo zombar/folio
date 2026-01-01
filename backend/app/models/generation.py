@@ -19,6 +19,7 @@ class GenerationType(str, enum.Enum):
     INPAINT = "inpaint"
     UPSCALE = "upscale"
     OUTPAINT = "outpaint"
+    ANIMATE = "animate"
 
 
 class Generation(Base):
@@ -77,6 +78,12 @@ class Generation(Base):
     outpaint_bottom = Column(Integer, nullable=True)
     outpaint_feather = Column(Integer, nullable=True)
 
+    # Animation fields
+    video_path = Column(String(500), nullable=True)
+    motion_bucket_id = Column(Integer, nullable=True)  # SVD motion 1-127
+    fps = Column(Integer, nullable=True)
+    duration_seconds = Column(Float, nullable=True)
+
     # ComfyUI tracking
     comfyui_prompt_id = Column(String(100), nullable=True)
 
@@ -130,6 +137,11 @@ class Generation(Base):
             "outpaint_top": self.outpaint_top,
             "outpaint_bottom": self.outpaint_bottom,
             "outpaint_feather": self.outpaint_feather,
+            # Animation fields
+            "video_path": self.video_path,
+            "motion_bucket_id": self.motion_bucket_id,
+            "fps": self.fps,
+            "duration_seconds": self.duration_seconds,
             # Timestamps
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,

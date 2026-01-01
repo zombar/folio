@@ -20,6 +20,8 @@ interface ViewportPanelProps {
   secondaryAction?: { label: string; onClick: () => void }
   onClose: () => void
   className?: string
+  initialOffset?: { x: number; y: number }
+  onOffsetChange?: (offset: { x: number; y: number }) => void
 }
 
 export function ViewportPanel({
@@ -31,9 +33,11 @@ export function ViewportPanel({
   secondaryAction,
   onClose,
   className = '',
+  initialOffset,
+  onOffsetChange,
 }: ViewportPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null)
-  const [offset, setOffset] = useState({ x: 0, y: 0 })
+  const [offset, setOffset] = useState(initialOffset || { x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
 
@@ -80,6 +84,8 @@ export function ViewportPanel({
 
     const handleMouseUp = () => {
       setIsDragging(false)
+      // Notify parent of final position
+      onOffsetChange?.(offset)
     }
 
     window.addEventListener('mousemove', handleMouseMove)
@@ -88,7 +94,7 @@ export function ViewportPanel({
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isDragging, dragStart, clampOffset])
+  }, [isDragging, dragStart, clampOffset, offset, onOffsetChange])
 
   const positionClass = position === 'top' ? 'top-4' : 'bottom-4'
 

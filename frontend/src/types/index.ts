@@ -8,7 +8,7 @@ export interface Portfolio {
   image_count: number
 }
 
-export type GenerationType = 'txt2img' | 'inpaint' | 'upscale' | 'outpaint'
+export type GenerationType = 'txt2img' | 'inpaint' | 'upscale' | 'outpaint' | 'animate'
 
 export interface Generation {
   id: string
@@ -46,6 +46,11 @@ export interface Generation {
   outpaint_top: number | null
   outpaint_bottom: number | null
   outpaint_feather: number | null
+  // Animation fields
+  video_path: string | null
+  motion_bucket_id: number | null
+  fps: number | null
+  duration_seconds: number | null
   // Timestamps
   created_at: string
   completed_at: string | null
@@ -82,6 +87,10 @@ export interface GenerationParams {
   outpaint_top?: number
   outpaint_bottom?: number
   outpaint_feather?: number
+  // Animation fields
+  motion_bucket_id?: number
+  fps?: number
+  duration_seconds?: number
 }
 
 export interface ModelInfo {

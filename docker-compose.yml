@@ -2,6 +2,23 @@ name: folio
 
 services:
   comfyui:
+    build: ./docker/comfyui-cpu
+    ports:
+      - "8188:8188"
+    volumes:
+      - ./models:/opt/ComfyUI/models
+      - ./storage/comfyui-output:/opt/ComfyUI/output
+    environment:
+      - COMFYUI_ARGS=--listen 0.0.0.0 --cpu
+      - WEB_ENABLE_AUTH=false
+      - SKIP_ACL=true
+      - CF_QUICK_TUNNELS=false
+      - SERVICEPORTAL_PORT_HOST=
+      - SYNCTHING_PORT_HOST=
+    profiles:
+      - cpu
+
+  comfyui-nvidia:
     build: ./docker/comfyui
     runtime: nvidia
     profiles:
@@ -20,6 +37,10 @@ services:
       - CF_QUICK_TUNNELS=false
       - SERVICEPORTAL_PORT_HOST=
       - SYNCTHING_PORT_HOST=
+    networks:
+      default:
+        aliases:
+          - comfyui
     deploy:
       resources:
         reservations:
@@ -27,6 +48,34 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+
+  comfyui-rocm:
+    build: ./docker/comfyui-rocm
+    profiles:
+      - rocm
+    ports:
+      - "8188:8188"
+    volumes:
+      - ./models:/opt/ComfyUI/models
+      - ./storage/comfyui-output:/opt/ComfyUI/output
+    environment:
+      - GPU_COUNT=1
+      - COMFYUI_ARGS=--listen 0.0.0.0
+      - WEB_ENABLE_AUTH=false
+      - SKIP_ACL=true
+      - CF_QUICK_TUNNELS=false
+      - SERVICEPORTAL_PORT_HOST=
+      - SYNCTHING_PORT_HOST=
+    networks:
+      default:
+        aliases:
+          - comfyui
+    devices:
+      - /dev/kfd
+      - /dev/dri
+    group_add:
+      - video
+      - render
 
   backend:
     build: ./backend

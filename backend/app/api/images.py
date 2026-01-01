@@ -42,3 +42,20 @@ async def get_thumbnail(generation_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Thumbnail file not found")
 
     return FileResponse(thumbnail_path, media_type="image/webp")
+
+
+@router.get("/images/{generation_id}/video")
+async def get_video(generation_id: str, db: Session = Depends(get_db)):
+    """Get the video for an animation generation."""
+    generation = db.query(Generation).filter(Generation.id == generation_id).first()
+    if not generation:
+        raise HTTPException(status_code=404, detail="Generation not found")
+
+    if not generation.video_path:
+        raise HTTPException(status_code=404, detail="Video not available")
+
+    video_path = Path(settings.storage_path) / generation.video_path
+    if not video_path.exists():
+        raise HTTPException(status_code=404, detail="Video file not found")
+
+    return FileResponse(video_path, media_type="video/mp4")
