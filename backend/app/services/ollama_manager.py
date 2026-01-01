@@ -170,15 +170,22 @@ class OllamaManager:
 
     async def is_ready(self) -> bool:
         """Check if manager is ready to handle requests."""
-        if self._status != "ready":
-            # Try to check if we can reach the server and have a model
-            if await self.check_server():
-                if self._current_model and await self.has_model(self._current_model):
-                    async with self._lock:
-                        self._status = "ready"
-                    return True
+        # Always verify server is up and model exists
+        if not await self.check_server():
             return False
-        return await self.check_server()
+
+        if not self._current_model:
+            return False
+
+        if not await self.has_model(self._current_model):
+            return False
+
+        # Update status if we're ready but weren't marked as such
+        if self._status != "ready":
+            async with self._lock:
+                self._status = "ready"
+
+        return True
 
     def get_status(self) -> dict:
         """Get current status as a dict."""

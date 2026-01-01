@@ -612,16 +612,19 @@ class TestOllamaManager:
 
     @pytest.mark.asyncio
     async def test_is_ready_when_ready(self):
-        """Test is_ready returns True when status is ready and server available."""
+        """Test is_ready returns True when server available and model exists."""
         manager = OllamaManager()
         manager._status = "ready"
+        manager._current_model = "llama3.2:1b"
 
         with patch.object(manager, "check_server", new_callable=AsyncMock) as mock_check:
-            mock_check.return_value = True
+            with patch.object(manager, "has_model", new_callable=AsyncMock) as mock_has:
+                mock_check.return_value = True
+                mock_has.return_value = True
 
-            result = await manager.is_ready()
+                result = await manager.is_ready()
 
-            assert result is True
+                assert result is True
 
     @pytest.mark.asyncio
     async def test_switch_model_same_model_when_ready(self):

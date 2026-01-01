@@ -2,7 +2,6 @@ import { Link, useParams } from 'react-router-dom'
 import {
   useConversations,
   useConversationCount,
-  useDeleteConversation,
 } from '../../hooks/useChat'
 
 const MAX_VISIBLE = 10
@@ -11,7 +10,6 @@ export default function ConversationList() {
   const { id: activeId } = useParams()
   const { data: conversations, isLoading } = useConversations(MAX_VISIBLE)
   const { data: countData } = useConversationCount()
-  const deleteMutation = useDeleteConversation()
 
   const totalCount = countData?.count || 0
   const hasMore = totalCount > MAX_VISIBLE
@@ -36,7 +34,7 @@ export default function ConversationList() {
             <Link
               key={conv.id}
               to={`/chat/${conv.id}`}
-              className={`group flex items-center gap-3 px-3 py-2 transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2 transition-colors ${
                 activeId === conv.id
                   ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white'
                   : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white'
@@ -56,29 +54,6 @@ export default function ConversationList() {
               <span className="ml-auto text-xs text-neutral-500 dark:text-neutral-500">
                 {conv.message_count}
               </span>
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  deleteMutation.mutate(conv.id)
-                }}
-                className="opacity-0 group-hover:opacity-100 -mr-1 p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-opacity"
-                aria-label="Delete conversation"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
             </Link>
           ))}
           {hasMore && (
