@@ -11,7 +11,7 @@ import { useChatStore } from '../stores/chatStore'
 import { MessageList, ChatInput, ModelSelector } from '../components/chat'
 import { Button } from '../components/ui'
 
-// Notification bar for chat issues (monochromatic style)
+// Notification bar for chat issues (same styling as 500 error display)
 function NotificationBar({ setupStatus }: { setupStatus: { hf_token_set: boolean; status: string; default_model?: string } | undefined }) {
   if (!setupStatus) return null
 
@@ -32,12 +32,10 @@ function NotificationBar({ setupStatus }: { setupStatus: { hf_token_set: boolean
   if (issues.length === 0) return null
 
   return (
-    <div className="px-4 py-3 bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
-      <div className="text-sm text-neutral-600 dark:text-neutral-400">
-        {issues.map((issue, i) => (
-          <p key={i}>{issue}</p>
-        ))}
-      </div>
+    <div className="text-neutral-700 dark:text-neutral-300 p-4 bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600">
+      {issues.map((issue, i) => (
+        <p key={i}>{issue}</p>
+      ))}
     </div>
   )
 }
