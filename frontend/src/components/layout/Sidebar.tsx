@@ -1,8 +1,11 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useUIStore } from '../../stores/uiStore'
 import { usePortfolios } from '../../hooks/usePortfolios'
 import { useGenerations } from '../../hooks/useGenerations'
+import { useCreateConversation, useChatStatus } from '../../hooks/useChat'
 import { ConversationList } from '../chat'
+
+const DEFAULT_MODEL = 'llama3.2:1b'
 
 export default function Sidebar() {
  const sidebarOpen = useUIStore((state) => state.sidebarOpen)
@@ -10,7 +13,16 @@ export default function Sidebar() {
  const closeImageDetail = useUIStore((state) => state.closeImageDetail)
  const { data: portfolios, isLoading } = usePortfolios()
  const { data: generations } = useGenerations()
+ const { data: chatStatus } = useChatStatus()
+ const createConversation = useCreateConversation()
  const location = useLocation()
+ const navigate = useNavigate()
+
+ const handleNewConversation = async () => {
+  const model = chatStatus?.model_id || DEFAULT_MODEL
+  const conv = await createConversation.mutateAsync({ model })
+  navigate(`/chat/${conv.id}`)
+ }
 
  if (!sidebarOpen) return null
 
@@ -177,16 +189,29 @@ export default function Sidebar() {
      )}
     </div>
 
-    {location.pathname.startsWith('/chat') && (
-     <div className="mt-8">
-      <div className="flex items-center justify-between px-3 mb-2">
-       <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
-        Conversations
-       </h3>
-      </div>
-      <ConversationList />
+    <div className="mt-8">
+     <div className="flex items-center justify-between px-3 mb-2">
+      <h3 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+       Conversations
+      </h3>
+      <button
+       onClick={handleNewConversation}
+       disabled={createConversation.isPending}
+       className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white disabled:opacity-50"
+       aria-label="New conversation"
+      >
+       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+         strokeLinecap="round"
+         strokeLinejoin="round"
+         strokeWidth={2}
+         d="M12 4v16m8-8H4"
+        />
+       </svg>
+      </button>
      </div>
-    )}
+     <ConversationList />
+    </div>
    </nav>
   </aside>
  )
