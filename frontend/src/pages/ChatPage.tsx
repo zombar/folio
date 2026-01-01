@@ -9,8 +9,9 @@ import {
 import { useChatStream } from '../hooks/useChatStream'
 import { useChatStore } from '../stores/chatStore'
 import { MessageList, ChatInput, ModelSelector } from '../components/chat'
+import { Button } from '../components/ui'
 
-// Notification bar for chat issues
+// Notification bar for chat issues (monochromatic style)
 function NotificationBar({ setupStatus }: { setupStatus: { hf_token_set: boolean; status: string; default_model?: string } | undefined }) {
   if (!setupStatus) return null
 
@@ -31,14 +32,11 @@ function NotificationBar({ setupStatus }: { setupStatus: { hf_token_set: boolean
   if (issues.length === 0) return null
 
   return (
-    <div className="px-4 py-2 bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-800">
-      <div className="flex items-start gap-2">
-        <span className="text-amber-600 dark:text-amber-400 text-sm">!</span>
-        <div className="text-xs text-amber-700 dark:text-amber-300 font-mono">
-          {issues.map((issue, i) => (
-            <p key={i}>{issue}</p>
-          ))}
-        </div>
+    <div className="px-4 py-3 bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
+      <div className="text-sm text-neutral-600 dark:text-neutral-400">
+        {issues.map((issue, i) => (
+          <p key={i}>{issue}</p>
+        ))}
       </div>
     </div>
   )
@@ -71,21 +69,28 @@ export default function ChatPage() {
   }
 
   if (!id) {
-    // No conversation selected - show empty state
+    // No conversation selected - show empty state (matching portfolio empty state)
     return (
       <div className="h-full flex flex-col">
         <NotificationBar setupStatus={setupStatus} />
-        <div className="flex-1 flex flex-col items-center justify-center text-neutral-500 dark:text-neutral-400">
-          <p className="mb-4 font-mono text-sm">
-            Select a conversation or start a new one
-          </p>
-          <button
-            onClick={handleNewConversation}
-            disabled={createConversation.isPending}
-            className="px-4 py-2 text-sm font-mono text-neutral-600 dark:text-neutral-300 border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-50 transition-colors"
-          >
-            New Conversation
-          </button>
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="text-center py-16">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center">
+              <svg className="w-8 h-8 text-neutral-400 dark:text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-lg font-medium text-neutral-700 dark:text-neutral-300 mb-2">No conversation selected</h2>
+            <p className="text-neutral-500 mb-4">Start a new conversation to chat with the model</p>
+            <Button onClick={handleNewConversation} loading={createConversation.isPending}>
+              New Conversation
+            </Button>
+          </div>
         </div>
       </div>
     )
