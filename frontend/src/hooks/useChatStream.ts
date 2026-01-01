@@ -10,6 +10,7 @@ export function useChatStream(conversationId: string | null) {
   const setStreaming = useChatStore((s) => s.setStreaming)
   const appendStreamingContent = useChatStore((s) => s.appendStreamingContent)
   const clearStreamingContent = useChatStore((s) => s.clearStreamingContent)
+  const setPendingMessage = useChatStore((s) => s.setPendingMessage)
 
   const sendMessage = useCallback(
     async (message: string) => {
@@ -20,6 +21,7 @@ export function useChatStream(conversationId: string | null) {
       abortControllerRef.current = new AbortController()
 
       clearStreamingContent()
+      setPendingMessage(message.trim())
       setStreaming(true)
 
       try {
@@ -89,6 +91,7 @@ export function useChatStream(conversationId: string | null) {
       setStreaming,
       appendStreamingContent,
       clearStreamingContent,
+      setPendingMessage,
     ]
   )
 
