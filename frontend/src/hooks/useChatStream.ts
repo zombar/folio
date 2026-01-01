@@ -59,10 +59,12 @@ export function useChatStream(conversationId: string | null) {
                   appendStreamingContent(chunk.content)
                 }
                 if (chunk.done) {
-                  // Refresh conversation to get saved message
-                  queryClient.invalidateQueries({
+                  // Refresh conversation to get saved message, wait for it to complete
+                  // before hiding streaming content to avoid visual glitch
+                  await queryClient.refetchQueries({
                     queryKey: ['conversation', conversationId],
                   })
+                  clearStreamingContent()
                 }
                 if (chunk.error) {
                   console.error('Stream error:', chunk.error)
