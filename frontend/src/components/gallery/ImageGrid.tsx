@@ -10,8 +10,39 @@ interface ImageGridProps {
  coverImageId?: string | null
 }
 
+// Seeded random for consistent shuffling per session
+function seededRandom(seed: number) {
+ return function() {
+  seed = (seed * 9301 + 49297) % 233280
+  return seed / 233280
+ }
+}
+
 export default function ImageGrid({ generations, onImageClick, onImageDelete, onSetCover, coverImageId }: ImageGridProps) {
  const [playingAnimationId, setPlayingAnimationId] = useState<string | null>(null)
+
+ // Separate animations and non-animations, then shuffle animations into random positions
+ const shuffledGenerations = useMemo(() => {
+  const nonAnimations = generations.filter(g => g.generation_type !== 'animate')
+  const animations = generations.filter(g => g.generation_type === 'animate')
+
+  if (animations.length === 0) return nonAnimations
+
+  // Use a session-stable seed based on generation IDs
+  const seed = generations.reduce((acc, g) => acc + g.id.charCodeAt(0), 0)
+  const random = seededRandom(seed)
+
+  // Create result array with non-animations
+  const result = [...nonAnimations]
+
+  // Insert each animation at a random position
+  for (const animation of animations) {
+   const insertIndex = Math.floor(random() * (result.length + 1))
+   result.splice(insertIndex, 0, animation)
+  }
+
+  return result
+ }, [generations])
 
  // Get all completed animations
  const animations = useMemo(() =>
@@ -58,7 +89,7 @@ export default function ImageGrid({ generations, onImageClick, onImageDelete, on
 
  return (
   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-   {generations.map((gen) => (
+   {shuffledGenerations.map((gen) => (
     <ImageCard
      key={gen.id}
      generation={gen}

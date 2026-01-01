@@ -33,8 +33,8 @@ export default function ImageCard({ generation, onClick, onDelete, onSetCover, i
      }}
      className={`absolute top-1 left-1 z-10 w-6 h-6 flex items-center justify-center rounded-full transition-opacity ${
       isCover
-       ? 'bg-yellow-500 text-white opacity-100'
-       : 'bg-black/60 hover:bg-yellow-500 text-white opacity-0 group-hover:opacity-100'
+       ? 'bg-white text-neutral-900 opacity-100'
+       : 'bg-black/60 hover:bg-white hover:text-neutral-900 text-white opacity-0 group-hover:opacity-100'
      }`}
      title={isCover ? 'Cover image' : 'Set as cover'}
     >
@@ -56,7 +56,7 @@ export default function ImageCard({ generation, onClick, onDelete, onSetCover, i
        onDelete(e)
       }
      }}
-     className="absolute top-1 right-1 z-10 w-6 h-6 flex items-center justify-center bg-black/60 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+     className="absolute top-1 right-1 z-10 w-6 h-6 flex items-center justify-center bg-black/60 hover:bg-white hover:text-neutral-900 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
      title="Delete"
     >
      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
