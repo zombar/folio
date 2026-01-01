@@ -1,4 +1,4 @@
-FROM ghcr.io/ai-dock/comfyui:rocm-latest
+FROM ghcr.io/ai-dock/comfyui:v2-rocm-6.0-runtime-22.04-v0.2.7
 
 # Update ComfyUI to specific version for compatibility with custom nodes
 WORKDIR /opt/ComfyUI

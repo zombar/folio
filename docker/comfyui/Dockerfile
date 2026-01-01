@@ -1,4 +1,4 @@
-FROM ghcr.io/ai-dock/comfyui:latest
+FROM ghcr.io/ai-dock/comfyui:v2-cuda-12.1.1-cudnn8-devel-22.04-v0.2.7
 
 # Update ComfyUI to specific version for compatibility with custom nodes
 WORKDIR /opt/ComfyUI
