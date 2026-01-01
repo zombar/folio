@@ -17,6 +17,8 @@ class OllamaManager:
         self._current_model: Optional[str] = None
         self._status: str = "stopped"
         self._error: Optional[str] = None
+        self._progress: Optional[float] = None
+        self._progress_status: Optional[str] = None
         self._lock = asyncio.Lock()
 
     @property
@@ -184,7 +186,88 @@ class OllamaManager:
             "model_id": self._current_model,
             "status": self._status,
             "error": self._error,
+            "progress": self._progress,
+            "progress_status": self._progress_status,
         }
+
+    async def switch_model_streaming(
+        self, model_id: str
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """Switch to a different model with streaming progress updates."""
+        async with self._lock:
+            # If already using this model and ready, no change needed
+            if model_id == self._current_model and self._status == "ready":
+                yield self.get_status()
+                return
+
+            self._status = "loading"
+            self._error = None
+            self._progress = None
+            self._progress_status = None
+            self._current_model = model_id
+
+        try:
+            # Check if server is available
+            if not await self.check_server():
+                async with self._lock:
+                    self._status = "error"
+                    self._error = "Ollama server not available"
+                yield self.get_status()
+                return
+
+            # Check if model exists, if not pull it with progress
+            if not await self.has_model(model_id):
+                logger.info(f"Model {model_id} not found locally, pulling...")
+                async with httpx.AsyncClient(timeout=None) as client:
+                    async with client.stream(
+                        "POST",
+                        f"{self.base_url}/api/pull",
+                        json={"name": model_id, "stream": True},
+                    ) as response:
+                        response.raise_for_status()
+                        async for line in response.aiter_lines():
+                            if line:
+                                try:
+                                    data = json.loads(line)
+                                    # Update progress from Ollama response
+                                    status_text = data.get("status", "")
+                                    completed = data.get("completed", 0)
+                                    total = data.get("total", 0)
+
+                                    async with self._lock:
+                                        self._progress_status = status_text
+                                        if total > 0:
+                                            self._progress = (completed / total) * 100
+
+                                    yield self.get_status()
+
+                                    if data.get("status") == "success":
+                                        break
+                                except json.JSONDecodeError:
+                                    continue
+
+            # Verify model is available
+            if await self.has_model(model_id):
+                async with self._lock:
+                    self._status = "ready"
+                    self._progress = None
+                    self._progress_status = None
+                logger.info(f"Switched to model: {model_id}")
+            else:
+                async with self._lock:
+                    self._status = "error"
+                    self._error = "Model not available after pull"
+
+            yield self.get_status()
+
+        except Exception as e:
+            logger.error(f"Failed to switch model: {e}")
+            async with self._lock:
+                self._status = "error"
+                self._error = str(e)
+                self._progress = None
+                self._progress_status = None
+            yield self.get_status()
 
 
 # Global singleton instance

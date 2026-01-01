@@ -14,26 +14,42 @@ import { Button } from '../components/ui'
 const DEFAULT_MODEL = 'llama3.2:1b'
 
 // Notification bar for chat issues
-function NotificationBar({ status }: { status: { model_id: string | null; status: string; error?: string | null } | undefined }) {
+function NotificationBar({ status }: { status: { model_id: string | null; status: string; error?: string | null; progress?: number | null; progress_status?: string | null } | undefined }) {
   if (!status) return null
 
-  const issues: string[] = []
-
   if (status.status === 'loading') {
-    issues.push(`Loading model${status.model_id ? ` ${status.model_id}` : ''}...`)
-  } else if (status.status === 'error') {
-    issues.push(`LLM server error: ${status.error || 'Check that the ollama service is running.'}`)
+    const progressPercent = status.progress != null ? Math.round(status.progress) : null
+    const progressText = status.progress_status || 'Loading'
+
+    return (
+      <div className="text-neutral-700 dark:text-neutral-300 p-4 bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600">
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-sm">
+            {status.model_id ? `${status.model_id}: ` : ''}{progressText}
+            {progressPercent != null && ` (${progressPercent}%)`}
+          </span>
+        </div>
+        {progressPercent != null && (
+          <div className="mt-2 h-1 bg-neutral-300 dark:bg-neutral-700 overflow-hidden">
+            <div
+              className="h-full bg-neutral-600 dark:bg-neutral-400 transition-all duration-300"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        )}
+      </div>
+    )
   }
 
-  if (issues.length === 0) return null
+  if (status.status === 'error') {
+    return (
+      <div className="text-neutral-700 dark:text-neutral-300 p-4 bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600">
+        <p>LLM server error: {status.error || 'Check that the ollama service is running.'}</p>
+      </div>
+    )
+  }
 
-  return (
-    <div className="text-neutral-700 dark:text-neutral-300 p-4 bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600">
-      {issues.map((issue, i) => (
-        <p key={i}>{issue}</p>
-      ))}
-    </div>
-  )
+  return null
 }
 
 export default function ChatPage() {

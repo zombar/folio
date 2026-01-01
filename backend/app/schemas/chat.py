@@ -46,6 +46,8 @@ class ModelStatus(BaseModel):
     model_id: Optional[str]
     status: Literal["loading", "ready", "error", "stopped"]
     error: Optional[str] = None
+    progress: Optional[float] = None  # Download progress 0-100
+    progress_status: Optional[str] = None  # e.g., "downloading", "verifying"
 
 
 class SwitchModelRequest(BaseModel):

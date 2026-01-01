@@ -153,6 +153,8 @@ export interface ChatStatus {
   model_id: string | null
   status: 'loading' | 'ready' | 'error' | 'stopped'
   error: string | null
+  progress: number | null
+  progress_status: string | null
 }
 
 export interface ChatStreamChunk {

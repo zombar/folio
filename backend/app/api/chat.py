@@ -45,6 +45,24 @@ async def switch_model(data: SwitchModelRequest):
     return ModelStatus(**ollama_manager.get_status())
 
 
+@router.post("/chat/model/stream")
+async def switch_model_stream(data: SwitchModelRequest):
+    """Switch to a different model with streaming progress updates."""
+
+    async def generate():
+        async for status in ollama_manager.switch_model_streaming(data.model_id):
+            yield f"data: {json.dumps(status)}\n\n"
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        },
+    )
+
+
 # Conversation CRUD
 @router.get("/conversations", response_model=List[ConversationResponse])
 async def list_conversations(

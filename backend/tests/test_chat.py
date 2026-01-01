@@ -517,6 +517,8 @@ class TestOllamaManager:
             "model_id": None,
             "status": "stopped",
             "error": None,
+            "progress": None,
+            "progress_status": None,
         }
 
     def test_base_url(self):
