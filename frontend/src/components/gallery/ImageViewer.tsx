@@ -10,6 +10,7 @@ import OpenInFullIcon from '@mui/icons-material/OpenInFull'
 import ClearIcon from '@mui/icons-material/Clear'
 import AutorenewIcon from '@mui/icons-material/Autorenew'
 import MovieIcon from '@mui/icons-material/Movie'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { TransformViewport, ImageToolbar, ViewportPanel, Input, Spinner } from '../ui'
 import type { TransformViewportHandle } from '../ui'
 import { useGeneration, useGenerations, useDeleteGeneration, useCreateGeneration } from '../../hooks/useGenerations'
@@ -22,7 +23,7 @@ interface ImageViewerProps {
   onClose: () => void
 }
 
-type ActivePanel = 'none' | 'inpaint' | 'upscale' | 'outpaint'
+type ActivePanel = 'none' | 'inpaint' | 'upscale' | 'outpaint' | 'info'
 
 const UPSCALE_MODELS = [
   { value: '4x-UltraSharp.pth', label: '4x UltraSharp' },
@@ -48,6 +49,23 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
   )
   const currentIndex = completedGenerations.findIndex(g => g.id === generationId)
   const totalImages = completedGenerations.length
+
+  // Find derived generations (children that use this image as source)
+  const derivedGenerations = useMemo(
+    () => allGenerations?.filter(g =>
+      g.source_generation_id === generationId &&
+      g.status === 'completed'
+    ) || [],
+    [allGenerations, generationId]
+  )
+
+  // Find source generation if this is a derived generation
+  const sourceGeneration = useMemo(
+    () => generation?.source_generation_id
+      ? allGenerations?.find(g => g.id === generation.source_generation_id)
+      : null,
+    [allGenerations, generation?.source_generation_id]
+  )
 
   const handlePrev = useCallback(() => {
     if (currentIndex > 0 && generation) {
@@ -333,6 +351,13 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
         onClick: handleDownload,
         disabled: !isCompleted,
       },
+      {
+        id: 'info',
+        icon: InfoOutlinedIcon,
+        tooltip: 'Properties',
+        onClick: () => setActivePanel(activePanel === 'info' ? 'none' : 'info'),
+        active: activePanel === 'info',
+      },
       { type: 'divider' as const },
       {
         id: 'close',
@@ -600,6 +625,111 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
                   className="w-full text-sm bg-neutral-800 border-neutral-700"
                 />
               </div>
+            </div>
+          </ViewportPanel>
+        )}
+
+        {/* Info Panel */}
+        {activePanel === 'info' && (
+          <ViewportPanel
+            title="Properties"
+            icon={InfoOutlinedIcon}
+            position="bottom"
+            onClose={() => setActivePanel('none')}
+          >
+            <div className="space-y-4 text-sm">
+              {/* Basic properties */}
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-neutral-400">Type</span>
+                  <span className="text-white capitalize">{generation.generation_type}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-400">Size</span>
+                  <span className="text-white">{generation.width} × {generation.height}</span>
+                </div>
+                {generation.seed && (
+                  <div className="flex justify-between">
+                    <span className="text-neutral-400">Seed</span>
+                    <span className="text-white font-mono text-xs">{generation.seed}</span>
+                  </div>
+                )}
+                {generation.model_filename && (
+                  <div className="flex justify-between">
+                    <span className="text-neutral-400">Model</span>
+                    <span className="text-white text-xs truncate max-w-[150px]" title={generation.model_filename}>
+                      {generation.model_filename.replace(/\.(safetensors|ckpt)$/, '')}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Prompt */}
+              {generation.prompt && (
+                <div>
+                  <div className="text-neutral-400 mb-1">Prompt</div>
+                  <div className="text-white text-xs leading-relaxed bg-neutral-800 rounded p-2 max-h-24 overflow-y-auto">
+                    {generation.prompt}
+                  </div>
+                </div>
+              )}
+
+              {/* Source generation link */}
+              {sourceGeneration && (
+                <div>
+                  <div className="text-neutral-400 mb-2">Source</div>
+                  <button
+                    onClick={() => navigate(`/portfolio/${generation.portfolio_id}/image/${sourceGeneration.id}`, { replace: true })}
+                    className="flex items-center gap-2 w-full p-2 bg-neutral-800 hover:bg-neutral-700 rounded transition"
+                  >
+                    <img
+                      src={`/api/images/${sourceGeneration.id}/thumbnail`}
+                      alt="Source"
+                      className="w-10 h-10 object-cover rounded"
+                    />
+                    <div className="text-left">
+                      <div className="text-white text-xs capitalize">{sourceGeneration.generation_type}</div>
+                      <div className="text-neutral-400 text-xs">{sourceGeneration.width} × {sourceGeneration.height}</div>
+                    </div>
+                  </button>
+                </div>
+              )}
+
+              {/* Derived generations */}
+              {derivedGenerations.length > 0 && (
+                <div>
+                  <div className="text-neutral-400 mb-2">Derived ({derivedGenerations.length})</div>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {derivedGenerations.map((derived) => (
+                      <button
+                        key={derived.id}
+                        onClick={() => navigate(`/portfolio/${generation.portfolio_id}/image/${derived.id}`, { replace: true })}
+                        className="flex items-center gap-2 w-full p-2 bg-neutral-800 hover:bg-neutral-700 rounded transition"
+                      >
+                        <img
+                          src={`/api/images/${derived.id}/thumbnail`}
+                          alt={derived.generation_type}
+                          className="w-10 h-10 object-cover rounded"
+                        />
+                        <div className="text-left flex-1">
+                          <div className="text-white text-xs capitalize flex items-center gap-1">
+                            {derived.generation_type}
+                            {derived.generation_type === 'animate' && (
+                              <MovieIcon sx={{ fontSize: 12 }} />
+                            )}
+                          </div>
+                          <div className="text-neutral-400 text-xs">
+                            {derived.generation_type === 'animate'
+                              ? `${derived.duration_seconds}s @ ${derived.fps}fps`
+                              : `${derived.width} × ${derived.height}`
+                            }
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </ViewportPanel>
         )}
