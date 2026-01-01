@@ -21,11 +21,12 @@ logger = logging.getLogger(__name__)
 def run_migrations():
     """Run alembic migrations on startup.
 
-    Handles existing databases by stamping the baseline if tables exist
-    but alembic_version doesn't.
+    Handles two scenarios:
+    1. New database: create tables with create_all(), stamp at head
+    2. Existing database: run pending migrations
     """
-    from sqlalchemy import inspect, text
-    from app.database import engine
+    from sqlalchemy import inspect
+    from app.database import engine, Base
 
     alembic_cfg = Config(Path(__file__).parent.parent / "alembic.ini")
     alembic_cfg.set_main_option(
@@ -35,24 +36,15 @@ def run_migrations():
     inspector = inspect(engine)
     tables = inspector.get_table_names()
 
-    if "portfolios" in tables and "alembic_version" not in tables:
-        # Existing database without alembic - stamp with baseline
-        logger.info("Existing database detected, stamping baseline...")
-        command.stamp(alembic_cfg, "922a42abde2d")
-
-    # Check if schema is out of sync (migration ran but columns missing)
-    if "generations" in tables:
-        columns = set(c['name'] for c in inspector.get_columns('generations'))
-        required = {'generation_type', 'source_generation_id', 'video_path'}
-        if not required.issubset(columns) and "alembic_version" in tables:
-            # Schema out of sync - reset to baseline to re-run migrations
-            logger.info("Schema out of sync, resetting alembic to baseline...")
-            with engine.connect() as conn:
-                conn.execute(text("UPDATE alembic_version SET version_num = '922a42abde2d'"))
-                conn.commit()
-
-    # Run any pending migrations
-    command.upgrade(alembic_cfg, "head")
+    if "portfolios" not in tables:
+        # New database - create all tables and stamp at head
+        logger.info("New database detected, creating tables...")
+        Base.metadata.create_all(bind=engine)
+        command.stamp(alembic_cfg, "head")
+        logger.info("Tables created and stamped at head.")
+    else:
+        # Existing database - run pending migrations
+        command.upgrade(alembic_cfg, "head")
 
 
 async def process_job(job: Job):
