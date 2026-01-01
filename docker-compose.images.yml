@@ -1,0 +1,39 @@
+# Docker Compose override file for using pre-built images from ghcr.io
+# Usage: docker compose -f docker-compose.yml -f docker-compose.images.yml --profile <cpu|gpu|rocm> up -d
+# Or use Makefile: make up-images, make up-images-gpu, make up-images-rocm
+
+name: folio
+
+services:
+  comfyui:
+    image: ghcr.io/zombar/folio/comfyui-cpu:latest
+    pull_policy: always
+
+  comfyui-nvidia:
+    image: ghcr.io/zombar/folio/comfyui:latest
+    pull_policy: always
+
+  comfyui-rocm:
+    image: ghcr.io/zombar/folio/comfyui-rocm:latest
+    pull_policy: always
+
+  # Note: SGLang requires GPU - chat feature unavailable on CPU profile
+  sglang:
+    image: ghcr.io/zombar/folio/sglang:latest
+    pull_policy: always
+
+  sglang-nvidia:
+    image: ghcr.io/zombar/folio/sglang:latest
+    pull_policy: always
+
+  sglang-rocm:
+    image: ghcr.io/zombar/folio/sglang-rocm:latest
+    pull_policy: always
+
+  backend:
+    image: ghcr.io/zombar/folio/backend:latest
+    pull_policy: always
+
+  frontend:
+    image: ghcr.io/zombar/folio/frontend:latest
+    pull_policy: always
