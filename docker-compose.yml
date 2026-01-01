@@ -153,6 +153,7 @@ services:
       - STORAGE_PATH=/app/storage
       - DATABASE_URL=sqlite:///./data/folio.db
       - MODELS_PATH=/app/models
+      - HF_TOKEN=${HF_TOKEN:-}
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8010", "--reload"]
 
   frontend:
