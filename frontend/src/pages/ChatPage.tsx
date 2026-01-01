@@ -1,14 +1,17 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   useConversation,
   useCreateConversation,
   useChatStatus,
+  useSwitchModel,
 } from '../hooks/useChat'
 import { useChatStream } from '../hooks/useChatStream'
 import { useChatStore } from '../stores/chatStore'
 import { MessageList, ChatInput, ModelSelector } from '../components/chat'
 import { Button } from '../components/ui'
+
+const DEFAULT_MODEL = 'llama3.2:1b'
 
 // Notification bar for chat issues
 function NotificationBar({ status }: { status: { model_id: string | null; status: string; error?: string | null } | undefined }) {
@@ -17,11 +20,9 @@ function NotificationBar({ status }: { status: { model_id: string | null; status
   const issues: string[] = []
 
   if (status.status === 'loading') {
-    issues.push('Model is loading...')
+    issues.push(`Loading model${status.model_id ? ` ${status.model_id}` : ''}...`)
   } else if (status.status === 'error') {
     issues.push(`LLM server error: ${status.error || 'Check that the ollama service is running.'}`)
-  } else if (status.status === 'stopped') {
-    issues.push('No model loaded. Select a model to get started.')
   }
 
   if (issues.length === 0) return null
@@ -42,6 +43,7 @@ export default function ChatPage() {
   const { data: conversation, isLoading } = useConversation(id || null)
   const { data: status } = useChatStatus()
   const createConversation = useCreateConversation()
+  const switchModel = useSwitchModel()
   const { sendMessage } = useChatStream(id || null)
 
   const selectConversation = useChatStore((s) => s.selectConversation)
@@ -53,8 +55,17 @@ export default function ChatPage() {
     clearStreamingContent()
   }, [id, selectConversation, clearStreamingContent])
 
+  // Prefetch model when chat page opens
+  const hasPrefetched = useRef(false)
+  useEffect(() => {
+    if (status?.status === 'stopped' && !hasPrefetched.current) {
+      hasPrefetched.current = true
+      switchModel.mutate(DEFAULT_MODEL)
+    }
+  }, [status?.status, switchModel])
+
   const handleNewConversation = async () => {
-    const model = status?.model_id || 'llama3.2:1b'
+    const model = status?.model_id || DEFAULT_MODEL
 
     const conv = await createConversation.mutateAsync({ model })
     navigate(`/chat/${conv.id}`)
