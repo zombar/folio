@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useChatStatus, useSwitchModel } from '../../hooks/useChat'
+
+const DEFAULT_MODEL = 'llama3.2:1b'
 
 interface ModelSelectorProps {
   currentModel?: string
@@ -8,7 +10,15 @@ interface ModelSelectorProps {
 export default function ModelSelector({ currentModel }: ModelSelectorProps) {
   const { data: status } = useChatStatus()
   const switchMutation = useSwitchModel()
-  const [modelInput, setModelInput] = useState('')
+  const [modelInput, setModelInput] = useState(DEFAULT_MODEL)
+
+  // Prepopulate with current/last used model
+  useEffect(() => {
+    const model = currentModel || status?.model_id
+    if (model) {
+      setModelInput(model)
+    }
+  }, [currentModel, status?.model_id])
 
   const isLoading = status?.status === 'loading' || switchMutation.isPending
   const isReady = status?.status === 'ready'
@@ -44,7 +54,7 @@ export default function ModelSelector({ currentModel }: ModelSelectorProps) {
           type="text"
           value={modelInput}
           onChange={(e) => setModelInput(e.target.value)}
-          placeholder="llama3.2:1b"
+          placeholder={DEFAULT_MODEL}
           disabled={isLoading}
           className="w-40 px-2 py-1 text-xs font-mono bg-transparent border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-neutral-500 dark:focus:border-neutral-400 disabled:opacity-50"
           onKeyDown={(e) => {
