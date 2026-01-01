@@ -105,6 +105,14 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Panel position memory
+  const [panelOffsets, setPanelOffsets] = useState<Record<string, { x: number; y: number }>>({})
+
+  const getPanelOffset = (panelName: string) => panelOffsets[panelName]
+  const setPanelOffset = (panelName: string) => (offset: { x: number; y: number }) => {
+    setPanelOffsets(prev => ({ ...prev, [panelName]: offset }))
+  }
+
   // Initialize prompts from generation
   useEffect(() => {
     if (generation) {
@@ -444,6 +452,8 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
               disabled: !hasMask,
             }}
             secondaryAction={{ label: 'Cancel', onClick: () => { setActivePanel('none'); handleClearMask() } }}
+            initialOffset={getPanelOffset('inpaint')}
+            onOffsetChange={setPanelOffset('inpaint')}
           >
             <div className="space-y-3">
               <p className="text-xs text-neutral-400">
@@ -489,6 +499,8 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
               loading: isSubmitting,
             }}
             secondaryAction={{ label: 'Cancel', onClick: () => setActivePanel('none') }}
+            initialOffset={getPanelOffset('upscale')}
+            onOffsetChange={setPanelOffset('upscale')}
           >
             <div className="space-y-3">
               <div>
@@ -558,6 +570,8 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
               disabled: outpaintLeft === 0 && outpaintRight === 0 && outpaintTop === 0 && outpaintBottom === 0,
             }}
             secondaryAction={{ label: 'Cancel', onClick: () => setActivePanel('none') }}
+            initialOffset={getPanelOffset('outpaint')}
+            onOffsetChange={setPanelOffset('outpaint')}
           >
             <div className="space-y-3">
               <div className="grid grid-cols-3 gap-2 items-center">
@@ -636,6 +650,8 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
             icon={InfoOutlinedIcon}
             position="bottom"
             onClose={() => setActivePanel('none')}
+            initialOffset={getPanelOffset('info')}
+            onOffsetChange={setPanelOffset('info')}
           >
             <div className="space-y-4 text-sm">
               {/* Basic properties */}
