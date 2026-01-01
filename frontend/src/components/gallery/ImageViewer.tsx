@@ -23,7 +23,7 @@ interface ImageViewerProps {
   onClose: () => void
 }
 
-type ActivePanel = 'none' | 'inpaint' | 'upscale' | 'outpaint' | 'info'
+type ActivePanel = 'none' | 'inpaint' | 'upscale' | 'outpaint' | 'animate' | 'info'
 
 const UPSCALE_MODELS = [
   { value: '4x-UltraSharp.pth', label: '4x UltraSharp' },
@@ -101,6 +101,11 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
   const [outpaintTop, setOutpaintTop] = useState(0)
   const [outpaintBottom, setOutpaintBottom] = useState(0)
   const [outpaintPrompt, setOutpaintPrompt] = useState('')
+
+  // Animation state
+  const [motionAmount, setMotionAmount] = useState(21)
+  const [animateFps, setAnimateFps] = useState(8)
+  const [animateFrames, setAnimateFrames] = useState(25)
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -239,21 +244,23 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
 
     setIsSubmitting(true)
     try {
+      const durationSeconds = animateFrames / animateFps
       const params: GenerationParams = {
         portfolio_id: generation.portfolio_id,
         prompt: generation.prompt,
         generation_type: 'animate',
         source_generation_id: generation.id,
-        motion_bucket_id: 127,
-        fps: 8,
-        duration_seconds: 3.0,
+        motion_bucket_id: motionAmount,
+        fps: animateFps,
+        duration_seconds: durationSeconds,
       }
       await createGeneration.mutateAsync(params)
       queryClient.invalidateQueries({ queryKey: ['generations'] })
+      setActivePanel('none')
     } finally {
       setIsSubmitting(false)
     }
-  }, [generation, createGeneration, queryClient])
+  }, [generation, motionAmount, animateFps, animateFrames, createGeneration, queryClient])
 
   // Keyboard navigation
   useEffect(() => {
@@ -341,8 +348,8 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
         id: 'animate',
         icon: MovieIcon,
         tooltip: 'Animate',
-        onClick: handleSubmitAnimate,
-        disabled: !isCompleted || isSubmitting || isAnimation,
+        onClick: () => setActivePanel('animate'),
+        disabled: !isCompleted || isAnimation,
       },
       { type: 'divider' as const },
       {
@@ -638,6 +645,81 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
                   placeholder="Describe the extended areas..."
                   className="w-full text-sm bg-neutral-800 border-neutral-700"
                 />
+              </div>
+            </div>
+          </ViewportPanel>
+        )}
+
+        {/* Animate Panel */}
+        {activePanel === 'animate' && (
+          <ViewportPanel
+            title="Animate"
+            icon={MovieIcon}
+            position="bottom"
+            onClose={() => setActivePanel('none')}
+            primaryAction={{
+              label: 'Create Animation',
+              onClick: handleSubmitAnimate,
+              loading: isSubmitting,
+            }}
+            secondaryAction={{ label: 'Cancel', onClick: () => setActivePanel('none') }}
+            initialOffset={getPanelOffset('animate')}
+            onOffsetChange={setPanelOffset('animate')}
+          >
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-neutral-400">Motion Amount</span>
+                  <span className="text-white">{motionAmount}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-neutral-500">Subtle</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="127"
+                    value={motionAmount}
+                    onChange={(e) => setMotionAmount(parseInt(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className="text-xs text-neutral-500">Dramatic</span>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-neutral-400">Speed (FPS)</span>
+                  <span className="text-white">{animateFps}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-neutral-500">Slow</span>
+                  <input
+                    type="range"
+                    min="4"
+                    max="24"
+                    step="2"
+                    value={animateFps}
+                    onChange={(e) => setAnimateFps(parseInt(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className="text-xs text-neutral-500">Fast</span>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-neutral-400">Frames</span>
+                  <span className="text-white">{animateFrames}</span>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="25"
+                  value={animateFrames}
+                  onChange={(e) => setAnimateFrames(parseInt(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              <div className="text-center text-xs text-neutral-400">
+                Duration: {(animateFrames / animateFps).toFixed(2)}s ({animateFrames} frames at {animateFps} fps)
               </div>
             </div>
           </ViewportPanel>
