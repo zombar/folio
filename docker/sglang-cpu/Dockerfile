@@ -13,8 +13,10 @@ ENV PATH="/opt/sglang-env/bin:$PATH"
 
 # Install SGLang (CPU version - no CUDA)
 # Install sglang without torch_memory_saver (it requires CUDA headers to build)
+# Also need triton which is a transitive dependency
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir sglang --no-deps && \
+    pip install --no-cache-dir triton && \
     pip install --no-cache-dir $(pip show sglang | grep Requires | sed 's/Requires: //' | tr ',' '\n' | grep -v torch_memory_saver | tr '\n' ' ')
 
 # Create directory for HuggingFace cache
