@@ -30,9 +30,9 @@ function NotificationBar({ status }: { status: { model_id: string | null; status
           </span>
         </div>
         {progressPercent != null && (
-          <div className="mt-2 h-1 bg-neutral-300 dark:bg-neutral-700 overflow-hidden">
+          <div className="mt-2 h-px bg-neutral-300 dark:bg-neutral-700 overflow-hidden">
             <div
-              className="h-full bg-neutral-600 dark:bg-neutral-400 transition-all duration-300"
+              className="h-full bg-neutral-500 dark:bg-neutral-500 transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
