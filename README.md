@@ -1,22 +1,33 @@
 # Folio
 
-Local-first AI image generator with portfolio based image management. Uses ComfyUI under the hood for SDXL image generation and transformation, with super-light React frontend.
+Local-first AI image generator with portfolio based image management. Uses ComfyUI under the hood for SDXL image generation and transformation, with super-light React frontend. Also includes local LLM chat powered by Ollama.
 
 ## Features
 
+### Image Generation
 - **Portfolio organization** - Group generated images into collections
 - **Text-to-image generation** - Import your custom SDXL workflows with configurable parameters
 - **Inpainting** - Paint over areas to regenerate the bits you don't like
 - **Outpainting** - Extend images in any direction
 - **Upscaling** - Multiple upscaler models (RealESRGAN, UltraSharp)
 - **Image variations** - Rework existing images with adjusted parameters
-- **Greyscale interface** - Neutral UI that doesn't compete with generated images
+- **Optimized defaults** - Pre-tuned settings for realistic photo generation (dpmpp_2m sampler, karras scheduler, CFG 5.5)
 - **Queue management** - Priority-based job queue with preemption
+
+### Text Chat
+- **Local LLM chat** - Converse with Ollama-hosted models
+- **Multiple conversations** - Manage separate chat threads
+- **Model switching** - Switch between available Ollama models
+- **Streaming responses** - Real-time response streaming with markdown rendering
+
+### User Interface
+- **Greyscale interface** - Neutral UI that doesn't compete with generated images
+- **Dark/light mode** - Toggle between themes
 
 ## Requirements
 
 - Docker with Compose
-- NVIDIA GPU with 8GB+ VRAM
+- NVIDIA GPU with 8GB+ VRAM (for image generation)
 - ~20GB disk for models
 
 ## Model Setup
@@ -38,13 +49,29 @@ For SDXL, download a checkpoint such as `sd_xl_base_1.0.safetensors` and place i
 ```bash
 # Show all available commands
 make help
+```
 
-# Start all services (requires GPU)
-make up-gpu
+### Launch Profiles
 
-# Start backend + frontend only (no GPU/ComfyUI)
-make up
+Choose the right profile for your hardware:
 
+| Command | Description | GPU Required |
+|---------|-------------|--------------|
+| `make up` | CPU rendering (slow, for testing) | No |
+| `make up-gpu` | NVIDIA GPU with CUDA | NVIDIA GPU |
+| `make up-rocm` | AMD GPU with ROCm | AMD GPU |
+
+Pre-built images (faster startup, no local build):
+
+| Command | Description |
+|---------|-------------|
+| `make up-images` | CPU profile with pre-built images |
+| `make up-images-gpu` | NVIDIA GPU with pre-built images |
+| `make up-images-rocm` | AMD ROCm with pre-built images |
+
+### Common Commands
+
+```bash
 # Stop all services
 make down
 
@@ -53,12 +80,17 @@ make logs
 
 # Run tests
 make test
+
+# Show running containers
+make ps
 ```
 
-Services:
-- Frontend: http://localhost:5173
-- Backend: http://localhost:8010
-- ComfyUI: http://localhost:8188 (with `make up-gpu`)
+### Services
+
+Once running, access the services at:
+- **Frontend:** http://localhost:5173
+- **Backend:** http://localhost:8010
+- **ComfyUI:** http://localhost:8188
 
 ## Architecture
 

@@ -38,8 +38,9 @@ class Generation(Base):
     height = Column(Integer, default=1024)
     seed = Column(Integer, nullable=True)
     steps = Column(Integer, default=30)
-    cfg_scale = Column(Float, default=7.0)
-    sampler = Column(String(50), default="euler")
+    cfg_scale = Column(Float, default=5.5)
+    sampler = Column(String(50), default="dpmpp_2m")
+    scheduler = Column(String(50), default="karras")
 
     # Status
     status = Column(SQLEnum(GenerationStatus), default=GenerationStatus.PENDING)
@@ -113,6 +114,7 @@ class Generation(Base):
             "steps": self.steps,
             "cfg_scale": self.cfg_scale,
             "sampler": self.sampler,
+            "scheduler": self.scheduler,
             "status": self.status.value if self.status else None,
             "progress": self.progress,
             "error_message": self.error_message,

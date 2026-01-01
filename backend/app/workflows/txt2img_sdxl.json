@@ -2,14 +2,14 @@
   "3": {
     "class_type": "KSampler",
     "inputs": {
-      "cfg": 7.0,
+      "cfg": 5.5,
       "denoise": 1.0,
       "latent_image": ["5", 0],
       "model": ["4", 0],
       "negative": ["7", 0],
       "positive": ["6", 0],
-      "sampler_name": "euler",
-      "scheduler": "normal",
+      "sampler_name": "dpmpp_2m",
+      "scheduler": "karras",
       "seed": 0,
       "steps": 30
     }

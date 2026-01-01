@@ -322,6 +322,7 @@ class TestGenerationSchemas:
             "steps": 20,
             "cfg_scale": 2.5,
             "sampler": "euler",
+            "scheduler": "karras",
             "status": "completed",
             "progress": 100,
             "error_message": None,

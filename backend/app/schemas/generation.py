@@ -14,8 +14,9 @@ class GenerationCreate(BaseModel):
     height: int = 1024
     seed: Optional[int] = None
     steps: int = 30
-    cfg_scale: float = 7.0
-    sampler: str = "euler"
+    cfg_scale: float = 5.5
+    sampler: str = "dpmpp_2m"
+    scheduler: str = "karras"
     workflow_id: Optional[str] = None
     model_filename: Optional[str] = None
     lora_filename: Optional[str] = None
@@ -55,6 +56,7 @@ class GenerationResponse(BaseModel):
     steps: int
     cfg_scale: float
     sampler: str
+    scheduler: str
     status: str
     progress: int
     error_message: Optional[str]

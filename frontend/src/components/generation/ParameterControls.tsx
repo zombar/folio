@@ -7,6 +7,7 @@ export default function ParameterControls() {
  const steps = useGenerationStore((state) => state.steps)
  const cfgScale = useGenerationStore((state) => state.cfgScale)
  const sampler = useGenerationStore((state) => state.sampler)
+ const scheduler = useGenerationStore((state) => state.scheduler)
  const seed = useGenerationStore((state) => state.seed)
 
  const setWidth = useGenerationStore((state) => state.setWidth)
@@ -14,9 +15,11 @@ export default function ParameterControls() {
  const setSteps = useGenerationStore((state) => state.setSteps)
  const setCfgScale = useGenerationStore((state) => state.setCfgScale)
  const setSampler = useGenerationStore((state) => state.setSampler)
+ const setScheduler = useGenerationStore((state) => state.setScheduler)
  const setSeed = useGenerationStore((state) => state.setSeed)
 
  const samplers = ['euler', 'euler_ancestral', 'dpmpp_2m', 'dpmpp_sde', 'ddim']
+ const schedulers = ['normal', 'karras', 'exponential', 'sgm_uniform']
  const presets = [
   { label: '1:1', width: 1024, height: 1024 },
   { label: '16:9', width: 1344, height: 768 },
@@ -93,20 +96,36 @@ export default function ParameterControls() {
     />
    </div>
 
-   {/* Sampler */}
-   <div>
-    <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Sampler</label>
-    <select
-     value={sampler}
-     onChange={(e) => setSampler(e.target.value)}
-     className="w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-500"
-    >
-     {samplers.map((s) => (
-      <option key={s} value={s}>
-       {s}
-      </option>
-     ))}
-    </select>
+   {/* Sampler & Scheduler */}
+   <div className="grid grid-cols-2 gap-4">
+    <div>
+     <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Sampler</label>
+     <select
+      value={sampler}
+      onChange={(e) => setSampler(e.target.value)}
+      className="w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-500"
+     >
+      {samplers.map((s) => (
+       <option key={s} value={s}>
+        {s}
+       </option>
+      ))}
+     </select>
+    </div>
+    <div>
+     <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Scheduler</label>
+     <select
+      value={scheduler}
+      onChange={(e) => setScheduler(e.target.value)}
+      className="w-full bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-500"
+     >
+      {schedulers.map((s) => (
+       <option key={s} value={s}>
+        {s}
+       </option>
+      ))}
+     </select>
+    </div>
    </div>
 
    {/* Seed */}

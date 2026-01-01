@@ -202,6 +202,7 @@ class GenerationService:
             steps=data.steps,
             cfg_scale=data.cfg_scale,
             sampler=data.sampler,
+            scheduler=data.scheduler,
             workflow_id=data.workflow_id,
             model_filename=data.model_filename,
             lora_filename=data.lora_filename,
@@ -284,6 +285,7 @@ class GenerationService:
             steps=parent.steps,
             cfg_scale=parent.cfg_scale,
             sampler=parent.sampler,
+            scheduler=parent.scheduler or "karras",
         )
 
         result = await self.create(data)
@@ -465,6 +467,7 @@ class GenerationService:
             workflow["3"]["inputs"]["steps"] = generation.steps
             workflow["3"]["inputs"]["cfg"] = generation.cfg_scale
             workflow["3"]["inputs"]["sampler_name"] = generation.sampler
+            workflow["3"]["inputs"]["scheduler"] = generation.scheduler or "karras"
 
         # Inject model filename if specified
         if generation.model_filename:
