@@ -77,6 +77,60 @@ services:
       - video
       - render
 
+  # Ollama LLM Server - CPU profile
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./storage/ollama:/root/.ollama
+    profiles:
+      - cpu
+
+  # Ollama LLM Server - NVIDIA GPU profile
+  ollama-nvidia:
+    image: ollama/ollama
+    runtime: nvidia
+    profiles:
+      - gpu
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./storage/ollama:/root/.ollama
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    networks:
+      default:
+        aliases:
+          - ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Ollama LLM Server - AMD ROCm profile
+  ollama-rocm:
+    image: ollama/ollama:rocm
+    profiles:
+      - rocm
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./storage/ollama:/root/.ollama
+    networks:
+      default:
+        aliases:
+          - ollama
+    devices:
+      - /dev/kfd
+      - /dev/dri
+    group_add:
+      - video
+      - render
+
   backend:
     build: ./backend
     ports:
@@ -91,6 +145,8 @@ services:
       - STORAGE_PATH=/app/storage
       - DATABASE_URL=sqlite:///./data/folio.db
       - MODELS_PATH=/app/models
+      - OLLAMA_HOST=ollama
+      - OLLAMA_PORT=11434
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8010", "--reload"]
 
   frontend:

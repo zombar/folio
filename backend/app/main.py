@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import SessionLocal
-from app.api import portfolios, generations, images, events, health, models, workflows
+from app.api import portfolios, generations, images, events, health, models, workflows, chat
 from app.services.builtin_workflows import seed_builtin_workflows
 from app.services.job_queue import init_job_queue, JobType, Job
 from app.services.generation_service import process_generation_job
@@ -106,3 +106,4 @@ app.include_router(images.router, prefix="/api", tags=["images"])
 app.include_router(events.router, prefix="/api", tags=["events"])
 app.include_router(models.router, prefix="/api", tags=["models"])
 app.include_router(workflows.router, prefix="/api", tags=["workflows"])
+app.include_router(chat.router, prefix="/api", tags=["chat"])

@@ -47,7 +47,7 @@ export default function HomePage() {
      <Button onClick={openCreateModal}>Create Portfolio</Button>
     </div>
    ) : (
-    <PortfolioGrid portfolios={portfolios} />
+    <PortfolioGrid portfolios={portfolios ?? []} />
    )}
   </div>
  )

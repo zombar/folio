@@ -73,7 +73,7 @@ export default function ImageGrid({ generations, onImageClick, onImageDelete, on
   // Rotate every 5-10 seconds (random interval)
   const getRandomInterval = () => 5000 + Math.random() * 5000
 
-  let timeoutId: NodeJS.Timeout
+  let timeoutId: ReturnType<typeof setTimeout>
 
   const scheduleNext = () => {
    timeoutId = setTimeout(() => {

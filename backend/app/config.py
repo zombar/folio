@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: List[str] = ["http://localhost:5173", "http://localhost:3000"]
 
+    # Ollama
+    ollama_host: str = "localhost"
+    ollama_port: int = 11434
+    default_model: str = "llama3.2:1b"
+
     # Testing
     testing: bool = False
 
