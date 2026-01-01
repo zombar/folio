@@ -18,11 +18,13 @@ build: ## Build all containers
 build-fresh: ## Build all containers without cache (use after dependency changes)
 	docker compose build --no-cache
 
-up: ## Start backend + frontend (no GPU)
-	docker compose up -d
+up: ## Start all services with CPU rendering
+	@docker run --rm -v $(PWD)/storage:/storage alpine sh -c "mkdir -p /storage/comfyui-output /storage/images && chmod -R 777 /storage/comfyui-output /storage/images"
+	docker compose --profile cpu up -d
 	@echo ""
 	@echo "  Backend:  http://localhost:8010"
 	@echo "  Frontend: http://localhost:5173"
+	@echo "  ComfyUI:  http://localhost:8188 (CPU)"
 
 up-gpu: ## Start all services including ComfyUI (requires NVIDIA GPU)
 	@docker run --rm -v $(PWD)/storage:/storage alpine sh -c "mkdir -p /storage/comfyui-output /storage/images && chmod -R 777 /storage/comfyui-output /storage/images"
@@ -41,7 +43,7 @@ up-rocm: ## Start all services including ComfyUI (requires AMD GPU with ROCm)
 	@echo "  ComfyUI:  http://localhost:8188"
 
 down: ## Stop all services
-	docker compose --profile gpu --profile rocm down
+	docker compose --profile cpu --profile gpu --profile rocm down
 
 restart: ## Restart all services
 	docker compose restart
@@ -53,7 +55,7 @@ ps: ## Show running containers
 	docker compose ps
 
 clean: ## Stop and remove containers, volumes
-	docker compose --profile gpu --profile rocm down -v --remove-orphans
+	docker compose --profile cpu --profile gpu --profile rocm down -v --remove-orphans
 
 test: test-backend test-frontend ## Run all tests
 
