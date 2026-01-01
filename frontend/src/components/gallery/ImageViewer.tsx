@@ -14,6 +14,7 @@ import { TransformViewport, ImageToolbar, ViewportPanel, Input, Spinner } from '
 import type { TransformViewportHandle } from '../ui'
 import { useGeneration, useGenerations, useDeleteGeneration, useCreateGeneration } from '../../hooks/useGenerations'
 import { useGenerationStore } from '../../stores/generationStore'
+import { getVideoUrl } from '../../api/client'
 import type { GenerationParams } from '../../types'
 
 interface ImageViewerProps {
@@ -262,6 +263,7 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
   }
 
   const isCompleted = generation.status === 'completed'
+  const isAnimation = generation.generation_type === 'animate'
 
   // Build toolbar items based on active panel
   const getToolbarItems = () => {
@@ -293,28 +295,28 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
         icon: AutoFixHighIcon,
         tooltip: 'Touch-up (Inpaint)',
         onClick: () => setActivePanel('inpaint'),
-        disabled: !isCompleted,
+        disabled: !isCompleted || isAnimation,
       },
       {
         id: 'upscale',
         icon: PhotoSizeSelectLargeIcon,
         tooltip: 'Upscale',
         onClick: () => setActivePanel('upscale'),
-        disabled: !isCompleted,
+        disabled: !isCompleted || isAnimation,
       },
       {
         id: 'outpaint',
         icon: OpenInFullIcon,
         tooltip: 'Extend (Outpaint)',
         onClick: () => setActivePanel('outpaint'),
-        disabled: !isCompleted,
+        disabled: !isCompleted || isAnimation,
       },
       {
         id: 'animate',
         icon: MovieIcon,
         tooltip: 'Animate',
         onClick: handleSubmitAnimate,
-        disabled: !isCompleted || isSubmitting,
+        disabled: !isCompleted || isSubmitting || isAnimation,
       },
       { type: 'divider' as const },
       {
@@ -377,13 +379,25 @@ export default function ImageViewer({ generationId, onClose }: ImageViewerProps)
             onMaskChange={setHasMask}
             toolbar={<ImageToolbar items={getToolbarItems()} position="top-right" />}
           >
-            <img
-              src={getImageUrl(generation.id)}
-              alt={generation.prompt}
-              style={{ width: generation.width, height: generation.height }}
-              draggable={false}
-              onLoad={() => viewportRef.current?.fitToContainer()}
-            />
+            {isAnimation && generation.video_path ? (
+              <video
+                src={getVideoUrl(generation.id)}
+                style={{ width: generation.width, height: generation.height }}
+                autoPlay
+                loop
+                muted
+                playsInline
+                onLoadedMetadata={() => viewportRef.current?.fitToContainer()}
+              />
+            ) : (
+              <img
+                src={getImageUrl(generation.id)}
+                alt={generation.prompt}
+                style={{ width: generation.width, height: generation.height }}
+                draggable={false}
+                onLoad={() => viewportRef.current?.fitToContainer()}
+              />
+            )}
           </TransformViewport>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-neutral-400">
