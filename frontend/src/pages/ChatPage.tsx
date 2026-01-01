@@ -4,10 +4,11 @@ import {
   useConversation,
   useCreateConversation,
   useChatStatus,
+  useSetupStatus,
 } from '../hooks/useChat'
 import { useChatStream } from '../hooks/useChatStream'
 import { useChatStore } from '../stores/chatStore'
-import { MessageList, ChatInput, ModelSelector } from '../components/chat'
+import { MessageList, ChatInput, ModelSelector, ChatSetup } from '../components/chat'
 
 export default function ChatPage() {
   const { id } = useParams()
@@ -15,6 +16,7 @@ export default function ChatPage() {
 
   const { data: conversation, isLoading } = useConversation(id || null)
   const { data: status } = useChatStatus()
+  const { data: setupStatus } = useSetupStatus()
   const createConversation = useCreateConversation()
   const { sendMessage } = useChatStream(id || null)
 
@@ -32,6 +34,11 @@ export default function ChatPage() {
 
     const conv = await createConversation.mutateAsync({ model })
     navigate(`/chat/${conv.id}`)
+  }
+
+  // Show setup if HF token not configured or model not ready
+  if (setupStatus && (!setupStatus.hf_token_set || setupStatus.status !== 'ready')) {
+    return <ChatSetup />
   }
 
   if (!id) {

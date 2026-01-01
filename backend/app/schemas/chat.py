@@ -50,3 +50,13 @@ class ModelStatus(BaseModel):
 
 class SwitchModelRequest(BaseModel):
     model_id: str
+
+
+class SetupRequest(BaseModel):
+    hf_token: str
+
+
+class SetupStatus(BaseModel):
+    hf_token_set: bool
+    default_model: str
+    status: Literal["loading", "ready", "error", "stopped"]

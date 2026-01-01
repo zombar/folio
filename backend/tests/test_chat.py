@@ -692,3 +692,32 @@ class TestChatAPI:
         data = response.json()
         assert "status" in data
         assert data["status"] in ["loading", "ready", "error", "stopped"]
+
+    def test_get_setup_status(self, client):
+        """Test getting setup status."""
+        response = client.get("/api/chat/setup")
+        assert response.status_code == 200
+        data = response.json()
+        assert "hf_token_set" in data
+        assert "default_model" in data
+        assert "status" in data
+
+    def test_post_setup(self, client, tmp_path, monkeypatch):
+        """Test setting up HF token."""
+        # Mock storage path to use temp directory
+        monkeypatch.setattr("app.config.settings.storage_path", str(tmp_path / "storage"))
+
+        # Mock the sglang_manager to avoid actually starting a server
+        with patch("app.api.chat.sglang_manager") as mock_manager:
+            mock_manager.start_server = AsyncMock(return_value=True)
+            mock_manager.status = "loading"
+
+            response = client.post(
+                "/api/chat/setup",
+                json={"hf_token": "hf_test_token_123"},
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["hf_token_set"] is True
+            assert "default_model" in data

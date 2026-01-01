@@ -13,11 +13,16 @@ from app.schemas.chat import (
     ChatRequest,
     ModelStatus,
     SwitchModelRequest,
+    SetupRequest,
+    SetupStatus,
 )
 from app.services.chat_service import ChatService
 from app.services.sglang_manager import sglang_manager
 from app.services.sglang_client import sglang_client
 from app.models.chat import MessageRole
+from app.config import settings
+import os
+from pathlib import Path
 
 router = APIRouter()
 
@@ -43,6 +48,62 @@ async def switch_model(data: SwitchModelRequest):
             detail=sglang_manager.error or "Failed to switch model",
         )
     return ModelStatus(**sglang_manager.get_status())
+
+
+# Setup endpoints
+@router.get("/chat/setup", response_model=SetupStatus)
+async def get_setup_status():
+    """Get current setup status (HF token, model ready)."""
+    hf_token_set = bool(settings.hf_token or os.environ.get("HF_TOKEN"))
+    return SetupStatus(
+        hf_token_set=hf_token_set,
+        default_model=settings.default_model,
+        status=sglang_manager.status,
+    )
+
+
+@router.post("/chat/setup", response_model=SetupStatus)
+async def setup_chat(data: SetupRequest):
+    """
+    Save HF token and start the default model.
+
+    The token is saved to .env file and the SGLang server
+    is started with the default model (downloading if needed).
+    """
+    # Save token to .env file in data directory
+    env_file = Path(settings.storage_path).parent / "data" / ".env"
+    env_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # Read existing .env or create new
+    env_content = {}
+    if env_file.exists():
+        with open(env_file) as f:
+            for line in f:
+                line = line.strip()
+                if line and "=" in line and not line.startswith("#"):
+                    key, value = line.split("=", 1)
+                    env_content[key] = value
+
+    # Update HF_TOKEN
+    env_content["HF_TOKEN"] = data.hf_token
+
+    # Write back
+    with open(env_file, "w") as f:
+        for key, value in env_content.items():
+            f.write(f"{key}={value}\n")
+
+    # Set in current environment and settings
+    os.environ["HF_TOKEN"] = data.hf_token
+    settings.hf_token = data.hf_token
+
+    # Start SGLang with the default model (will download if needed)
+    await sglang_manager.start_server(settings.default_model)
+
+    return SetupStatus(
+        hf_token_set=True,
+        default_model=settings.default_model,
+        status=sglang_manager.status,
+    )
 
 
 # Conversation CRUD
