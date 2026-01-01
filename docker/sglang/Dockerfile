@@ -14,11 +14,11 @@ RUN python3 -m venv /opt/sglang-env
 ENV PATH="/opt/sglang-env/bin:$PATH"
 
 # Install SGLang with all dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
+RUN pip install --no-cache-dir --upgrade pip wheel setuptools && \
     pip install --no-cache-dir "sglang[all]"
 
-# Install flash-attention for better performance
-RUN pip install --no-cache-dir flash-attn --no-build-isolation
+# Install flash-attention for better performance (optional, may fail without CUDA devel)
+RUN pip install --no-cache-dir flash-attn --no-build-isolation || echo "flash-attn install skipped (requires CUDA devel image)"
 
 # Create directory for HuggingFace cache
 RUN mkdir -p /root/.cache/huggingface
