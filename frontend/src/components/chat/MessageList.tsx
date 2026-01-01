@@ -44,7 +44,7 @@ export default function MessageList({ messages }: MessageListProps) {
   }, [messages, streamingContent, pendingMessage])
 
   return (
-    <div className="flex-1 overflow-y-auto font-mono text-sm p-4">
+    <div className="flex-1 overflow-y-auto font-mono text-sm p-4" style={{ lineHeight: 1.725 }}>
       {messages.length === 0 && !isStreaming && (
         <div className="text-neutral-400 dark:text-neutral-500 text-center py-8">
           Start a conversation by typing below
