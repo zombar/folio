@@ -1,4 +1,4 @@
-import { FormEvent, KeyboardEvent } from 'react'
+import { FormEvent, KeyboardEvent, useRef } from 'react'
 import { useChatStore } from '../../stores/chatStore'
 
 interface ChatInputProps {
@@ -7,6 +7,7 @@ interface ChatInputProps {
 }
 
 export default function ChatInput({ onSubmit, disabled }: ChatInputProps) {
+  const inputRef = useRef<HTMLInputElement>(null)
   const inputValue = useChatStore((s) => s.inputValue)
   const setInputValue = useChatStore((s) => s.setInputValue)
   const clearInput = useChatStore((s) => s.clearInput)
@@ -18,6 +19,8 @@ export default function ChatInput({ onSubmit, disabled }: ChatInputProps) {
 
     onSubmit(inputValue)
     clearInput()
+    // Keep focus on input after sending
+    inputRef.current?.focus()
   }
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -35,6 +38,7 @@ export default function ChatInput({ onSubmit, disabled }: ChatInputProps) {
       <div className="flex items-center gap-2 font-mono">
         <span className="text-neutral-400 dark:text-neutral-500">&gt;</span>
         <input
+          ref={inputRef}
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
