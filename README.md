@@ -1,15 +1,15 @@
 # Folio
 
-A local AI image generator with portfolio organization. Uses ComfyUI for SDXL image generation with a React frontend and FastAPI backend.
+Local-first AI image generator with portfolio based image management. Uses ComfyUI under the hood for SDXL image generation and transformation, with super-light React frontend.
 
 ## Features
 
 - **Portfolio organization** - Group generated images into collections
-- **Text-to-image generation** - SDXL workflows with configurable parameters
-- **Inpainting** - Paint over areas to regenerate with marching ants mask visualization
+- **Text-to-image generation** - Import your custom SDXL workflows with configurable parameters
+- **Inpainting** - Paint over areas to regenerate the bits you don't like
 - **Outpainting** - Extend images in any direction
 - **Upscaling** - Multiple upscaler models (RealESRGAN, UltraSharp)
-- **Image variations** - Iterate on existing images with adjusted parameters
+- **Image variations** - Rework existing images with adjusted parameters
 - **Greyscale interface** - Neutral UI that doesn't compete with generated images
 - **Queue management** - Priority-based job queue with preemption
 
