@@ -1,5 +1,5 @@
 # SGLang server with NVIDIA CUDA support
-FROM nvidia/cuda:12.1-runtime-ubuntu22.04
+FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
 
 # Install Python and dependencies
 RUN apt-get update && apt-get install -y \
