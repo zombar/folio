@@ -36,7 +36,7 @@ export default function MessageList({ messages }: MessageListProps) {
       {messages.map((msg) => (
         <div
           key={msg.id}
-          className="py-1 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 -mx-2 px-2"
+          className="py-2 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 -mx-2 px-2 border-b border-neutral-100 dark:border-neutral-800"
         >
           <span className="text-neutral-400 dark:text-neutral-500 mr-2">
             [{formatTime(msg.created_at)}]
@@ -58,7 +58,7 @@ export default function MessageList({ messages }: MessageListProps) {
 
       {/* Streaming response */}
       {isStreaming && streamingContent && (
-        <div className="py-1 -mx-2 px-2">
+        <div className="py-2 -mx-2 px-2 border-b border-neutral-100 dark:border-neutral-800">
           <span className="text-neutral-400 dark:text-neutral-500 mr-2">
             [--:--]
           </span>
@@ -74,7 +74,7 @@ export default function MessageList({ messages }: MessageListProps) {
 
       {/* Streaming indicator when waiting for first token */}
       {isStreaming && !streamingContent && (
-        <div className="py-1 -mx-2 px-2">
+        <div className="py-2 -mx-2 px-2 border-b border-neutral-100 dark:border-neutral-800">
           <span className="text-neutral-400 dark:text-neutral-500 mr-2">
             [--:--]
           </span>
