@@ -1,9 +1,10 @@
 # SGLang server - CPU only (for testing, very slow for inference)
 FROM python:3.11-slim
 
-# Install dependencies
+# Install dependencies (g++ needed for torch_memory_saver)
 RUN apt-get update && apt-get install -y \
     git \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a virtual environment

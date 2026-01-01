@@ -1,12 +1,13 @@
 # SGLang server with NVIDIA CUDA support
 FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
 
-# Install Python and dependencies
+# Install Python and dependencies (g++ needed for torch_memory_saver)
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     python3-venv \
     git \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a virtual environment
