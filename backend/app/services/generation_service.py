@@ -121,9 +121,9 @@ class GenerationService:
             prompt=source.prompt,
             generation_type="animate",
             source_generation_id=source_generation_id,
-            motion_bucket_id=127,  # Default SVD motion
+            motion_bucket_id=15,  # Subtle motion for auto-animations
             fps=8,
-            duration_seconds=3.0,
+            duration_seconds=2.0,  # 16 frames at 8 fps
         )
         return await self.create(data)
 
