@@ -10,6 +10,7 @@ interface GenerationState {
   steps: number
   cfgScale: number
   sampler: string
+  scheduler: string
   seed: number | null
   workflowId: string | null
   modelFilename: string | null
@@ -24,6 +25,7 @@ interface GenerationState {
   setSteps: (steps: number) => void
   setCfgScale: (cfg: number) => void
   setSampler: (sampler: string) => void
+  setScheduler: (scheduler: string) => void
   setSeed: (seed: number | null) => void
   setWorkflowId: (id: string | null) => void
   setModelFilename: (filename: string | null) => void
@@ -35,14 +37,17 @@ interface GenerationState {
   getParams: (portfolioId: string) => GenerationParams
 }
 
+const DEFAULT_NEGATIVE_PROMPT = 'cartoon, anime, illustration, painting, drawing, deformed, ugly, mutated hands, poorly drawn face, extra fingers, extra limbs, watermark, signature, blurry'
+
 const initialState = {
   prompt: '',
-  negativePrompt: '',
+  negativePrompt: DEFAULT_NEGATIVE_PROMPT,
   width: 1024,
   height: 1024,
   steps: 30,
-  cfgScale: 7.0,
-  sampler: 'euler',
+  cfgScale: 5.5,
+  sampler: 'dpmpp_2m',
+  scheduler: 'karras',
   seed: null as number | null,
   workflowId: null as string | null,
   modelFilename: null as string | null,
@@ -63,6 +68,7 @@ export const useGenerationStore = create<GenerationState>()(
       setSteps: (steps) => set({ steps }),
       setCfgScale: (cfgScale) => set({ cfgScale }),
       setSampler: (sampler) => set({ sampler }),
+      setScheduler: (scheduler) => set({ scheduler }),
       setSeed: (seed) => set({ seed }),
       setWorkflowId: (workflowId) => set({ workflowId }),
       setModelFilename: (modelFilename) => set({ modelFilename }),
@@ -71,12 +77,13 @@ export const useGenerationStore = create<GenerationState>()(
       setParentId: (parentId) => set({ parentId }),
       loadFromGeneration: (generation: Generation) => set({
         prompt: generation.prompt,
-        negativePrompt: generation.negative_prompt || '',
+        negativePrompt: generation.negative_prompt || DEFAULT_NEGATIVE_PROMPT,
         width: generation.width,
         height: generation.height,
         steps: generation.steps,
         cfgScale: generation.cfg_scale,
         sampler: generation.sampler,
+        scheduler: generation.scheduler || 'karras',
         seed: null, // Don't copy seed - let it generate a new one
         workflowId: generation.workflow_id,
         modelFilename: null, // Don't copy model - let user pick a new one
@@ -86,7 +93,7 @@ export const useGenerationStore = create<GenerationState>()(
       }),
       reset: () => set({
         prompt: '',
-        negativePrompt: '',
+        negativePrompt: DEFAULT_NEGATIVE_PROMPT,
         seed: null,
         parentId: null,
       }),
@@ -102,6 +109,7 @@ export const useGenerationStore = create<GenerationState>()(
           steps: state.steps,
           cfg_scale: state.cfgScale,
           sampler: state.sampler,
+          scheduler: state.scheduler,
           seed: state.seed ?? undefined,
           workflow_id: state.workflowId ?? undefined,
           model_filename: state.modelFilename ?? undefined,
@@ -120,6 +128,7 @@ export const useGenerationStore = create<GenerationState>()(
         steps: state.steps,
         cfgScale: state.cfgScale,
         sampler: state.sampler,
+        scheduler: state.scheduler,
         quantity: state.quantity,
         modelFilename: state.modelFilename,
       }),

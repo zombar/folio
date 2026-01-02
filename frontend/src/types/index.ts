@@ -22,6 +22,7 @@ export interface Generation {
   steps: number
   cfg_scale: number
   sampler: string
+  scheduler: string
   status: 'pending' | 'processing' | 'completed' | 'failed'
   progress: number
   error_message: string | null
@@ -66,6 +67,7 @@ export interface GenerationParams {
   steps?: number
   cfg_scale?: number
   sampler?: string
+  scheduler?: string
   workflow_id?: string
   model_filename?: string
   lora_filename?: string

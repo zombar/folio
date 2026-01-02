@@ -7,7 +7,10 @@ interface PortfolioGridProps {
 
 export default function PortfolioGrid({ portfolios }: PortfolioGridProps) {
  return (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+  <div
+   className="grid gap-4"
+   style={{ gridTemplateColumns: 'repeat(auto-fill, 360px)' }}
+  >
    {portfolios.map((portfolio) => (
     <PortfolioCard key={portfolio.id} portfolio={portfolio} />
    ))}

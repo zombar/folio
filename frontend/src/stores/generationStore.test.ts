@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGenerationStore } from './generationStore'
 
+const DEFAULT_NEGATIVE_PROMPT = 'cartoon, anime, illustration, painting, drawing, deformed, ugly, mutated hands, poorly drawn face, extra fingers, extra limbs, watermark, signature, blurry'
+
 describe('generationStore', () => {
   beforeEach(() => {
     // Reset store state before each test
@@ -11,12 +13,13 @@ describe('generationStore', () => {
     const state = useGenerationStore.getState()
 
     expect(state.prompt).toBe('')
-    expect(state.negativePrompt).toBe('')
+    expect(state.negativePrompt).toBe(DEFAULT_NEGATIVE_PROMPT)
     expect(state.width).toBe(1024)
     expect(state.height).toBe(1024)
     expect(state.steps).toBe(30)
-    expect(state.cfgScale).toBe(7.0)
-    expect(state.sampler).toBe('euler')
+    expect(state.cfgScale).toBe(5.5)
+    expect(state.sampler).toBe('dpmpp_2m')
+    expect(state.scheduler).toBe('karras')
     expect(state.seed).toBeNull()
   })
 
@@ -61,9 +64,9 @@ describe('generationStore', () => {
     setSeed(12345)
     reset()
 
-    // Prompt fields should be cleared
+    // Prompt fields should be cleared (negative prompt resets to default)
     expect(useGenerationStore.getState().prompt).toBe('')
-    expect(useGenerationStore.getState().negativePrompt).toBe('')
+    expect(useGenerationStore.getState().negativePrompt).toBe(DEFAULT_NEGATIVE_PROMPT)
     expect(useGenerationStore.getState().seed).toBeNull()
     // Settings should be preserved
     expect(useGenerationStore.getState().width).toBe(512)
