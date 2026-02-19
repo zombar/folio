@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -45,6 +46,7 @@ def client(db_session, tmp_path):
             pass
 
     app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as test_client:
-        yield test_client
+    with patch("app.main.run_migrations"):
+        with TestClient(app) as test_client:
+            yield test_client
     app.dependency_overrides.clear()

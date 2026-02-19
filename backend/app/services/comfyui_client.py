@@ -130,6 +130,13 @@ class ComfyUIClient:
         response.raise_for_status()
         return response.content
 
+    async def get_object_info(self) -> Dict[str, Any]:
+        """Get ComfyUI object info (available nodes and their inputs including model lists)."""
+        client = await self._get_client()
+        response = await client.get(f"{self.base_url}/object_info")
+        response.raise_for_status()
+        return response.json()
+
     async def get_system_stats(self) -> Dict[str, Any]:
         """Get ComfyUI system stats."""
         client = await self._get_client()
