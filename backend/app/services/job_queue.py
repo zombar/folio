@@ -1,12 +1,15 @@
 """Priority job queue with Write-Ahead Log (WAL) persistence."""
 import asyncio
 import json
+import logging
 import os
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Dict, Any, Optional, Callable, List
+
+logger = logging.getLogger(__name__)
 
 
 class JobPriority(str, Enum):
@@ -348,23 +351,33 @@ class PriorityJobQueue:
 
     async def _worker_loop(self) -> None:
         """Background worker that processes jobs."""
+        logger.info("Job queue worker started")
         while self._running:
             try:
                 # Non-blocking check with small sleep
                 job = await self.dequeue()
                 if job:
+                    logger.info("Dequeued job %s (type=%s, priority=%s)",
+                                job.id, job.job_type.value, job.priority.value)
                     await self.set_current_job(job)
                     if self._processor:
                         try:
                             await self._processor(job)
+                            logger.info("Job %s processed successfully", job.id)
+                        except Exception as e:
+                            logger.exception("Job %s failed during processing", job.id)
                         finally:
                             await self.complete(job.id)
+                    else:
+                        logger.error("No processor set for job %s", job.id)
+                        await self.complete(job.id)
                 else:
                     await asyncio.sleep(0.1)
             except asyncio.CancelledError:
+                logger.info("Job queue worker cancelled")
                 break
             except Exception as e:
-                print(f"Job processing error: {e}")
+                logger.exception("Unexpected error in job queue worker loop")
 
 
 # Global job queue instance - will be initialized with storage path

@@ -7,9 +7,6 @@ import type {
   WorkflowTemplate,
   WorkflowCreate,
   WorkflowUpdate,
-  Conversation,
-  ConversationWithMessages,
-  ChatStatus,
 } from '../types'
 
 const api = axios.create({
@@ -130,52 +127,5 @@ export const workflowApi = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/workflows/${id}`)
-  },
-}
-
-// Chat API
-export const chatApi = {
-  // Status
-  getStatus: async (): Promise<ChatStatus> => {
-    const response = await api.get('/chat/status')
-    return response.data
-  },
-
-  switchModel: async (modelId: string): Promise<ChatStatus> => {
-    const response = await api.post('/chat/model', { model_id: modelId })
-    return response.data
-  },
-
-  // Conversations
-  listConversations: async (limit = 10, offset = 0): Promise<Conversation[]> => {
-    const response = await api.get('/conversations', { params: { limit, offset } })
-    return response.data
-  },
-
-  countConversations: async (): Promise<{ count: number }> => {
-    const response = await api.get('/conversations/count')
-    return response.data
-  },
-
-  getConversation: async (id: string): Promise<ConversationWithMessages> => {
-    const response = await api.get(`/conversations/${id}`)
-    return response.data
-  },
-
-  createConversation: async (data: { model: string; title?: string }): Promise<Conversation> => {
-    const response = await api.post('/conversations', data)
-    return response.data
-  },
-
-  updateConversation: async (
-    id: string,
-    data: { title?: string; model?: string }
-  ): Promise<Conversation> => {
-    const response = await api.put(`/conversations/${id}`, data)
-    return response.data
-  },
-
-  deleteConversation: async (id: string): Promise<void> => {
-    await api.delete(`/conversations/${id}`)
   },
 }

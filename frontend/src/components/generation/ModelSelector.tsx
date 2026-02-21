@@ -49,11 +49,13 @@ export default function ModelSelector({
     ))}
    </select>
    {error && (
-    <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">Failed to load models</p>
+    <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">Failed to load models from ComfyUI</p>
    )}
-   <p className="mt-1 text-sm text-neutral-500">
-    {models?.length === 0 ? 'No ' + modelType + 's found. ' : ''}Add models to ./models/{modelType === 'checkpoint' ? 'checkpoints' : 'loras'}/
-   </p>
+   {models?.length === 0 && !isLoading && !error && (
+    <p className="mt-1 text-sm text-neutral-500">
+     No {modelType}s found on ComfyUI server
+    </p>
+   )}
   </div>
  )
 }

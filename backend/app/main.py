@@ -1,4 +1,5 @@
 import logging
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -9,11 +10,21 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import SessionLocal
-from app.api import portfolios, generations, images, events, health, models, workflows, chat
+from app.api import portfolios, generations, images, events, health, models, workflows
 from app.services.builtin_workflows import seed_builtin_workflows
 from app.services.job_queue import init_job_queue, JobType, Job
 from app.services.generation_service import process_generation_job
 from app.services.animation_processor import process_animation_job
+
+# Configure logging - ensure all app logs are visible
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)-8s [%(name)s] %(message)s",
+    stream=sys.stdout,
+)
+# Quiet down noisy libraries
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
@@ -106,4 +117,3 @@ app.include_router(images.router, prefix="/api", tags=["images"])
 app.include_router(events.router, prefix="/api", tags=["events"])
 app.include_router(models.router, prefix="/api", tags=["models"])
 app.include_router(workflows.router, prefix="/api", tags=["workflows"])
-app.include_router(chat.router, prefix="/api", tags=["chat"])

@@ -1,10 +1,11 @@
+import logging
 from fastapi import APIRouter, Query
 from typing import List, Optional
-from pathlib import Path
 from pydantic import BaseModel
 
-from app.config import settings
+from app.services.comfyui_client import comfyui_client
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -15,39 +16,7 @@ class ModelInfo(BaseModel):
     filename: str
     path: str
     type: str  # "checkpoint" or "lora"
-    size: int  # File size in bytes
-
-
-# Valid model file extensions
-CHECKPOINT_EXTENSIONS = {".safetensors", ".ckpt", ".pt"}
-LORA_EXTENSIONS = {".safetensors", ".pt"}
-
-
-def scan_models_directory(
-    base_path: Path, model_type: str, extensions: set
-) -> List[ModelInfo]:
-    """Scan a directory for model files."""
-    models = []
-    dir_path = base_path / (
-        "checkpoints" if model_type == "checkpoint" else "loras"
-    )
-
-    if not dir_path.exists():
-        return models
-
-    for file_path in dir_path.rglob("*"):
-        if file_path.is_file() and file_path.suffix.lower() in extensions:
-            relative_path = file_path.relative_to(base_path)
-            models.append(
-                ModelInfo(
-                    filename=file_path.name,
-                    path=str(relative_path),
-                    type=model_type,
-                    size=file_path.stat().st_size,
-                )
-            )
-
-    return models
+    size: int  # File size in bytes (0 when fetched from remote)
 
 
 @router.get("/models", response_model=List[ModelInfo])
@@ -57,24 +26,40 @@ async def list_models(
     ),
 ) -> List[ModelInfo]:
     """
-    List available models by scanning the models directory.
-
-    The models directory should have the following structure:
-    - models/checkpoints/ - SDXL, SD1.5, etc. (.safetensors, .ckpt)
-    - models/loras/ - LoRA models (.safetensors)
+    List available models by querying the remote ComfyUI instance.
     """
-    models_path = Path(settings.models_path)
     models = []
 
-    if model_type is None or model_type == "checkpoint":
-        models.extend(
-            scan_models_directory(models_path, "checkpoint", CHECKPOINT_EXTENSIONS)
-        )
+    try:
+        object_info = await comfyui_client.get_object_info()
 
-    if model_type is None or model_type == "lora":
-        models.extend(scan_models_directory(models_path, "lora", LORA_EXTENSIONS))
+        if model_type is None or model_type == "checkpoint":
+            checkpoints = _extract_model_names(object_info, "CheckpointLoaderSimple", "ckpt_name")
+            models.extend(
+                ModelInfo(filename=name, path=f"checkpoints/{name}", type="checkpoint", size=0)
+                for name in checkpoints
+            )
 
-    # Sort by filename
+        if model_type is None or model_type == "lora":
+            loras = _extract_model_names(object_info, "LoraLoader", "lora_name")
+            models.extend(
+                ModelInfo(filename=name, path=f"loras/{name}", type="lora", size=0)
+                for name in loras
+            )
+    except Exception as e:
+        logger.warning(f"Failed to fetch models from ComfyUI: {e}")
+        return []
+
     models.sort(key=lambda m: m.filename.lower())
-
     return models
+
+
+def _extract_model_names(object_info: dict, node_class: str, input_name: str) -> List[str]:
+    """Extract model names from ComfyUI object_info response."""
+    try:
+        node = object_info.get(node_class, {})
+        inputs = node.get("input", {}).get("required", {})
+        options = inputs.get(input_name, [[]])[0]
+        return list(options) if isinstance(options, (list, tuple)) else []
+    except (KeyError, IndexError, TypeError):
+        return []

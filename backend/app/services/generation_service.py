@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 import random
 from pathlib import Path
 from datetime import datetime
@@ -15,6 +16,8 @@ from app.schemas.generation import GenerationCreate, GenerationResponse
 from app.services.event_bus import event_bus
 from app.services.job_queue import get_job_queue, Job, JobType, JobPriority
 from app.services.comfyui_client import comfyui_client
+
+logger = logging.getLogger(__name__)
 
 
 class GenerationService:
@@ -515,6 +518,8 @@ async def process_generation_job(job: Job):
     from app.database import get_db_session
 
     generation_id = job.params["generation_id"]
+    logger.info("Processing generation job %s (type=%s, priority=%s)",
+                generation_id, job.job_type.value, job.priority.value)
 
     # Retry settings for model loading race condition
     max_retries = 3
@@ -523,7 +528,14 @@ async def process_generation_job(job: Job):
     with get_db_session() as db:
         generation = db.query(Generation).filter(Generation.id == generation_id).first()
         if not generation:
+            logger.error("Generation %s not found in database, skipping", generation_id)
             return
+
+        gen_type = generation.generation_type or "txt2img"
+        logger.info("Generation %s: type=%s, model=%s, workflow_id=%s, %dx%d, steps=%d, seed=%s",
+                     generation_id, gen_type, generation.model_filename,
+                     generation.workflow_id, generation.width, generation.height,
+                     generation.steps, generation.seed)
 
         try:
             # Update status to processing
@@ -538,9 +550,9 @@ async def process_generation_job(job: Job):
             # For inpainting/upscaling/outpainting, upload source image to ComfyUI
             source_image_name = None
             mask_image_name = None
-            gen_type = generation.generation_type or "txt2img"
 
             if gen_type in ("inpaint", "upscale", "outpaint"):
+                logger.info("Generation %s: uploading source image for %s", generation_id, gen_type)
                 # Get source generation image
                 source_gen = db.query(Generation).filter(
                     Generation.id == generation.source_generation_id
@@ -551,6 +563,7 @@ async def process_generation_job(job: Job):
                 # Read source image and upload to ComfyUI
                 storage_path = Path(settings.storage_path)
                 source_path = storage_path / source_gen.image_path
+                logger.info("Generation %s: reading source image from %s", generation_id, source_path)
                 with open(source_path, "rb") as f:
                     source_data = f.read()
                 source_image_name = await comfyui_client.upload_image(
@@ -563,6 +576,7 @@ async def process_generation_job(job: Job):
                         raise ValueError("Mask image not found")
 
                     mask_path = storage_path / generation.mask_path
+                    logger.info("Generation %s: uploading mask from %s", generation_id, mask_path)
                     with open(mask_path, "rb") as f:
                         mask_data = f.read()
                     mask_image_name = await comfyui_client.upload_image(
@@ -572,10 +586,13 @@ async def process_generation_job(job: Job):
             # Prepare workflow - need a service instance for this
             service = GenerationService(db)
             workflow = service._prepare_workflow(generation, source_image_name, mask_image_name)
+            logger.info("Generation %s: workflow prepared with %d nodes", generation_id, len(workflow))
 
             # Retry loop for transient ComfyUI errors (e.g., model not loaded yet)
             result = None
             for attempt in range(max_retries):
+                logger.info("Generation %s: submitting to ComfyUI (attempt %d/%d)",
+                            generation_id, attempt + 1, max_retries)
                 # Submit to ComfyUI
                 prompt_id = await comfyui_client.submit_workflow(workflow)
                 generation.comfyui_prompt_id = prompt_id
@@ -592,11 +609,15 @@ async def process_generation_job(job: Job):
                         or "none" in error_lower
                     )
                     if is_model_loading_error and attempt < max_retries - 1:
+                        logger.warning("Generation %s: retryable error (attempt %d): %s",
+                                       generation_id, attempt + 1, result.error)
                         await asyncio.sleep(retry_delay)
                         continue
                 break
 
             if result.status == "completed" and result.images:
+                logger.info("Generation %s: ComfyUI completed, downloading %d images",
+                            generation_id, len(result.images))
                 # Download and save image
                 img_info = result.images[0]
                 image_bytes = await comfyui_client.get_image(
@@ -613,6 +634,8 @@ async def process_generation_job(job: Job):
                 image_path = images_path / image_filename
                 with open(image_path, "wb") as f:
                     f.write(image_bytes)
+                logger.info("Generation %s: saved image to %s (%d bytes)",
+                            generation_id, image_path, len(image_bytes))
 
                 # Create thumbnail with LANCZOS resampling for quality
                 thumb_filename = f"{generation_id}_thumb.webp"
@@ -638,6 +661,8 @@ async def process_generation_job(job: Job):
                 generation.completed_at = datetime.utcnow()
                 db.commit()
 
+                logger.info("Generation %s: COMPLETED successfully", generation_id)
+
                 await event_bus.publish("generation.completed", {
                     "id": generation_id,
                     "status": "completed",
@@ -649,8 +674,10 @@ async def process_generation_job(job: Job):
                     service = GenerationService(db)
                     await service.maybe_auto_animate(generation.portfolio_id)
             else:
+                error_msg = result.error or "Unknown error"
+                logger.error("Generation %s: FAILED - %s", generation_id, error_msg)
                 generation.status = GenerationStatus.FAILED
-                generation.error_message = result.error or "Unknown error"
+                generation.error_message = error_msg
                 db.commit()
 
                 await event_bus.publish("generation.failed", {
@@ -660,6 +687,7 @@ async def process_generation_job(job: Job):
                 })
 
         except Exception as e:
+            logger.exception("Generation %s: FAILED with exception", generation_id)
             generation.status = GenerationStatus.FAILED
             generation.error_message = str(e)
             db.commit()
