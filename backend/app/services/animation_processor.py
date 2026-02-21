@@ -1,5 +1,6 @@
 """Animation processing service for SVD animations."""
 import json
+import logging
 import shutil
 import subprocess
 from datetime import datetime
@@ -13,6 +14,8 @@ from app.models.generation import Generation, GenerationStatus
 from app.services.comfyui_client import comfyui_client
 from app.services.event_bus import event_bus
 from app.services.job_queue import Job
+
+logger = logging.getLogger(__name__)
 
 
 class AnimationProcessor:
@@ -151,12 +154,14 @@ class AnimationProcessor:
 async def process_animation_job(job: Job):
     """Process an animation job."""
     generation_id = job.params["generation_id"]
+    logger.info("Processing animation job %s", generation_id)
 
     processor = AnimationProcessor(Path(settings.storage_path))
 
     with get_db_session() as db:
         generation = db.query(Generation).filter(Generation.id == generation_id).first()
         if not generation:
+            logger.error("Animation generation %s not found in database", generation_id)
             return
 
         try:
@@ -179,6 +184,7 @@ async def process_animation_job(job: Job):
             # Upload source image to ComfyUI
             storage_path = Path(settings.storage_path)
             source_path = storage_path / source_gen.image_path
+            logger.info("Animation %s: uploading source image from %s", generation_id, source_path)
             with open(source_path, "rb") as f:
                 source_data = f.read()
             source_image_name = await comfyui_client.upload_image(
@@ -197,6 +203,7 @@ async def process_animation_job(job: Job):
             workflow = processor._prepare_svd_workflow(
                 source_image_name, generation, seed, source_width, source_height
             )
+            logger.info("Animation %s: workflow prepared, submitting to ComfyUI", generation_id)
 
             # Submit to ComfyUI
             prompt_id = await comfyui_client.submit_workflow(workflow)
@@ -207,6 +214,7 @@ async def process_animation_job(job: Job):
             result = await comfyui_client.wait_for_completion(prompt_id, timeout=600.0)
 
             if result.status == "completed" and result.images:
+                logger.info("Animation %s: ComfyUI completed, %d frames", generation_id, len(result.images))
                 # Download all frames from ComfyUI
                 frames_dir = storage_path / "temp_frames" / generation_id
                 frames_dir.mkdir(parents=True, exist_ok=True)
@@ -250,8 +258,10 @@ async def process_animation_job(job: Job):
                     "video_path": generation.video_path,
                 })
             else:
+                error_msg = result.error or "Animation failed"
+                logger.error("Animation %s: FAILED - %s", generation_id, error_msg)
                 generation.status = GenerationStatus.FAILED
-                generation.error_message = result.error or "Animation failed"
+                generation.error_message = error_msg
                 db.commit()
 
                 await event_bus.publish("generation.failed", {
@@ -261,6 +271,7 @@ async def process_animation_job(job: Job):
                 })
 
         except Exception as e:
+            logger.exception("Animation %s: FAILED with exception", generation_id)
             generation.status = GenerationStatus.FAILED
             generation.error_message = str(e)
             db.commit()

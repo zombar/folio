@@ -1,4 +1,5 @@
 import logging
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -14,6 +15,16 @@ from app.services.builtin_workflows import seed_builtin_workflows
 from app.services.job_queue import init_job_queue, JobType, Job
 from app.services.generation_service import process_generation_job
 from app.services.animation_processor import process_animation_job
+
+# Configure logging - ensure all app logs are visible
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)-8s [%(name)s] %(message)s",
+    stream=sys.stdout,
+)
+# Quiet down noisy libraries
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
